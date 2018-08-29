@@ -1,6 +1,7 @@
 <?php
 
 use SAB\Penta\Theme;
+use SAB\Penta\Helper\ThemeHelper;
 
 return [
 
@@ -19,24 +20,15 @@ return [
 
 
     'positions' => [
-        'toolbar' => 'Toolbar',
-        'navbar_a' => 'Navbar A',
-        'navbar_b' => 'Navbar B',
         'hero' => 'Hero',
-        'top_a' => 'Top A',
-        'top_b' => 'Top B',
-        'top_c' => 'Top C',
-        'top_d' => 'Top D',
-        'sidebar_a' => 'Sidebar A',
-        'sidebar_b' => 'Sidebar B',
-        'main_top' => 'Main Top',
-        'main_bottom' => 'Main Bottom',
-        'bottom_a' => 'Bottom A',
-        'bottom_b' => 'Bottom B',
-        'bottom_c' => 'Bottom C',
-        'bottom_d' => 'Bottom D',
-        'foot' => 'Footer',
-        'fixed' => 'Fixed'
+        'TopA' => 'Top A',
+        'TopB' => 'Top B',
+        'Sidebar' => 'Sidebar',
+        'MainTop' => 'Main Top',
+        'MainBottom' => 'Main Bottom',
+        'BottomA' => 'Bottom A',
+        'BottomB' => 'Bottom B',
+        'Foot' => 'Footer'
     ],
 
     'widget' => [
@@ -67,19 +59,27 @@ return [
 
     'events' => [
 
+        'view.init' => function ($event, $view) use ($app) {
+            $view->addHelper(new ThemeHelper());
+        },
+
         'view.system/site/admin/settings' => function ($event, $view) use ($app) {
-            $view->script('site-theme', 'theme:app/bundle/site-theme.js', 'site-settings');
+            $view->script('site-setting-theme', 'theme:app/bundle/SiteSettingTheme.js', 'site-settings');
             $view->data('$theme', $this);
         },
 
         'view.system/site/admin/edit' => function ($event, $view) {
-            $view->script('node-theme', 'theme:app/bundle/node-theme.js', 'site-edit');
+            $view->script('site-node-theme', 'theme:app/bundle/SiteNodeTheme.js', 'site-edit');
         },
 
         'view.system/widget/edit' => function ($event, $view) {
-            $view->script('widget-theme', 'theme:app/bundle/widget-theme.js', 'widget-edit');
+            $view->script('site-widget-theme', 'theme:app/bundle/SiteWidgetTheme.js', 'widget-edit');
         }
 
-    ]
+    ],
+
+    'resources' => [
+        'theme-core:views' => 'views'
+    ],
 
 ];

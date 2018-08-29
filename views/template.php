@@ -1,15 +1,3 @@
-<?php
-    function uikitEncode(array $array) {
-        $str = '';
-        foreach($array as $key => $value) {
-            if(!$value) continue;
-            $str .= $key.':'.(string)$value.';';
-        }
-        return $str;
-    }
-?>
-
-
 <!DOCTYPE html>
 
 <html>
@@ -24,38 +12,21 @@
         <?php else : ?>
             <?php $view->style('uikit-theme', 'theme:css/theme.css') ?>
         <?php endif ?>
-        <?php $view->script('uikit-beta', 'theme:app/bundle/uikit.js') ?>
+        <?php $view->script('uikit-v3', 'theme:app/bundle/uikit.js') ?>
     </head>
 
     <body id="top">
 
         <div class="uk-offcanvas-content">
 
-            <?= $view->render('top.php') ?>
+            <?php if ($view->position()->exists('TopA')): ?>
+                <?= $view->tm()->section('TopA')->position('TopA') ?>
+            <?php endif; ?>
 
-            <?php foreach ($params['top'] as $pos => $section) : ?>
-                <?php if ($view->position()->exists('top_'.$pos)) : ?>
-                    <?= $view->position('top_'.$pos, 'section.php', ['tmpl' => 'cards.php', 'grid' => true, 'position' => 'top_'.$pos, 'section' => $section]) ?>
-                <?php endif ?>
-            <?php endforeach ?>
+            <?= $view->tm()->section('Main')->custom('main.php') ?>
 
-            <?= $view->render('section.php',['position' => 'main', 'tmpl' => 'main.php', 'section' => $params['main']]) ?>
-
-            <?php foreach ($params['bottom'] as $pos => $section) : ?>
-                <?php if ($view->position()->exists('bottom_'.$pos)) : ?>
-                    <?= $view->position('bottom_'.$pos, 'section.php', ['tmpl' => 'cards.php', 'grid' => true, 'position' => 'bottom_'.$pos, 'section' => $section]) ?>
-                <?php endif ?>
-            <?php endforeach ?>
-
-            <?= $view->render('section.php',['tmpl' => 'bottom.php', 'position' => 'footer', 'section' => $params['footer']]) ?>
-
-            <?= $view->render('offcanvas.php') ?>
 
         </div>
-
-        <?php if ($view->position()->exists('fixed')) : ?>
-            <?= $view->position('fixed','fixed.php', ['fixed' => $params['fixed']]) ?>
-        <?php endif ?>
 
         <?= $view->render('footer') ?>
 
