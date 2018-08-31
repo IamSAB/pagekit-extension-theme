@@ -54,6 +54,18 @@
 
     module.exports = {
 
+        section: {
+            label: 'Theme',
+            priority: 90
+        },
+
+        props: {
+            node: {
+                type: Object,
+                required: true
+            }
+        },
+
         data: () => ({
             search: '',
             filter: '',
@@ -61,7 +73,7 @@
             view: 'grid',
             active: [],
             settings: [],
-            sorting: [],
+            sorting: ['Head','Top','Main','Bottom','Foot'],
             theme: []
         }),
 

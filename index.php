@@ -7,33 +7,8 @@ return [
 
     'name' => 'theme-core',
 
-    'menus' => [
-        'main' => 'Main',
-        'footer' => 'Footer'
-    ],
-
     'autoload' => [
         'SAB\\Extension\\Theme\\' => 'src'
-    ],
-
-    'main' => 'SAB\\Extension\\Theme\\ThemeModule',
-
-
-    'positions' => [
-        'hero' => 'Hero',
-        'TopA' => 'Top A',
-        'TopB' => 'Top B',
-        'Sidebar' => 'Sidebar',
-        'MainTop' => 'Main Top',
-        'MainBottom' => 'Main Bottom',
-        'BottomA' => 'Bottom A',
-        'BottomB' => 'Bottom B',
-        'Foot' => 'Footer'
-    ],
-
-    'config' => [
-        'logo_inverse' => '',
-        'css' => ''
     ],
 
     'events' => [
