@@ -20,11 +20,10 @@
         <div class="uk-offcanvas-content">
 
             <?php if ($view->position()->exists('TopA')): ?>
-                <?= $view->tm()->section('TopA')->position('TopA') ?>
+                <?= $view->tm()->section('TopA', $view->tm()->position('TopA')) ?>
             <?php endif; ?>
 
-            <?= $view->tm()->section('Main')->custom('main.php') ?>
-
+            <?= $view->tm()->nested(['section' => ['Main'], 'custom' => ['main.php']]) ?>
 
         </div>
 

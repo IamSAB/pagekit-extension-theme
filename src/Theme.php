@@ -28,6 +28,15 @@ class Theme extends Module
     public function main(Application $app)
     {
 
+        $this->options['widget'] = [
+            'gridItemClasses' => '',
+            'containerClasses' => '',
+            'heading' => '',
+            'htag' => 'h3',
+            'hlink' => true,
+            'custom' => ''
+        ];
+
         $this->options['node'] = [
             'Navbar' => [
                 'transparent' => false,
@@ -37,28 +46,18 @@ class Theme extends Module
                 'heading' => '',
                 'classes' => ''
             ],
-            'SectionHero' => self::Section,
-            'PositionHero' => self::Position,
             'SectionTopA' => self::Section,
             'SectionTopB' => self::Section,
-            'SectionTopC' => self::Section,
-            'SectionTopD' => self::Section,
             'SectionMain' => self::Section,
             'SectionBottomA' => self::Section,
             'SectionBottomB' => self::Section,
-            'SectionBottomC' => self::Section,
-            'SectionBottomD' => self::Section,
             'SectionFoot' => self::Section,
             'PositionTopA' => self::Position,
             'PositionTopB' => self::Position,
-            'PositionTopC' => self::Position,
-            'PositionTopD' => self::Position,
             'PositionMainTop' => self::Position,
             'PositionMainBottom' => self::Position,
             'PositionBottomA' => self::Position,
             'PositionBottomB' => self::Position,
-            'PositionBottomC' => self::Position,
-            'PositionBottomD' => self::Position,
             'PositionFoot' => self::Position
         ];
     }

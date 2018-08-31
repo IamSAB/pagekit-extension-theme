@@ -8,8 +8,8 @@
                 <select-class-responsive
                     class="uk-form-small"
                     :classes.sync="setting.classes"
-                    :options="widths"
-                    prefix="uk-grid-width-">
+                    :options="childWidths"
+                    prefix="uk-child-width-">
                 </select-class-responsive>
             </div>
         </div>
@@ -126,7 +126,7 @@
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Custom class' | trans }}</label>
             <div class="uk-form-controls">
-                <input type="text" class="uk-form-width-large" v-model="setting.custom">
+                <input type="text" class="uk-form-width-large" v-model="setting.custom" lazy>
             </div>
         </div>
 
@@ -138,12 +138,7 @@
 
     module.exports = {
 
-        props: {
-            setting: {
-                type: Object,
-                required: true
-            }
-        },
+        extends: require('./Setting.js'),
 
         data: () => ({
             gutters: {
@@ -164,6 +159,15 @@
                 middle: 'Middle',
                 bottom: 'Bottom',
                 stretch: 'Stretch'
+            },
+            childWidths: {
+                auto: 'Auto',
+                expand: 'Expand',
+                '1-2':'1/2 50%',
+                '1-3':'1/3 33%',
+                '1-4':'1/4 25%',
+                '1-5':'1/5 20%',
+                '1-6':'1/6 17%',
             }
         }),
 

@@ -1,9 +1,9 @@
-<ul class="uk-navbar-nav uk-visible@s">
+<ul class="uk-navbar-nav <?= $breakpoint ? 'uk-visible-@'.$breakpoint : '' ?>">
 
     <?php foreach($nodes as $node) : ?>
 
         <li class="<?= $node->get('active') ? ' uk-active' : '' ?>">
-        
+
             <a href="<?= $node->getUrl() ?>"><?= $node->title ?></a>
 
             <?php if ($node->hasChildren()) : ?>
@@ -15,5 +15,5 @@
         </li>
 
     <?php endforeach ?>
-    
+
 </ul>

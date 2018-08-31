@@ -82,7 +82,7 @@
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Custom class' | trans }}</label>
             <div class="uk-form-controls">
-                <input type="text" class="uk-form-width-large" v-model="setting.custom">
+                <input type="text" class="uk-form-width-large" v-model="setting.custom" lazy>
             </div>
         </div>
 
@@ -97,12 +97,7 @@
 
     module.exports = {
 
-        props: {
-            setting: {
-                type: Object,
-                required: true
-            }
-        },
+        extends: require('./Setting.js'),
 
         watch: {
             cover (value, old) {

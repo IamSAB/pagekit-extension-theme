@@ -4,21 +4,12 @@ namespace SAB\Penta\Helper;
 
 use Pagekit\View\Helper\Helper;
 use SAB\Penta\Theme;
+use Prophecy\Exception\Doubler\MethodNotFoundException;
+use Pagekit\Widget\Model\Widget;
 
 class ThemeHelper extends Helper
 {
-    /**
-     * Render a wrapper section
-     *
-     * @param   string|array    $config
-     * @return  ThemeHelper
-     */
-    public function section($config)
-    {
-        $params = $this->getConfig('Section', $config);
-        $template = $params['cover'] ? 'section-cover.php' : 'section.php';
-        return $this->wrapper("theme-core:views/$template", $params);
-    }
+    // Content
 
     /**
      * Render a position
@@ -27,11 +18,29 @@ class ThemeHelper extends Helper
      * @param   array   $config
      * @return  string
      */
-    public function position(string $position, array $config = [])
+    public function position(string $position, array $params = [])
     {
-        if (empty($config)) $config = $position;
+        if (empty($config)) {
+            $config = $position;
+        }
         $params = $this->getConfig('Position', $config);
-        return $this->wrap($this->view->position($position, 'theme-core:views/position.php', $params));
+        return $this->view->position($position, 'theme-core:views/position.php', $params);
+    }
+
+    /**
+     * Render a widget
+     *
+     * @param Widget $widget
+     * @return string
+     */
+    public function widget(Widget $widget)
+    {
+        $params = array_merge([
+            'title' => $widget->title,
+            'content' => $widget->get('result'),
+        ], $widget->theme);
+
+        return $this->view->render('theme-core:views/widget.php', $params);
     }
 
     /**
@@ -43,49 +52,53 @@ class ThemeHelper extends Helper
      */
     public function custom(string $template, array $params = [])
     {
-        return $this->wrap($this->view->render($template, $params));
+        return $this->view->render($template, $params);
     }
+
+    // Wrapper
+
+    /**
+     * Render a section
+     *
+     * @param   string|array    $config
+     * @return  string
+     */
+    public function section($config, string $content)
+    {
+        $params = $this->getConfig('Section', $config);
+        $params['content'] = $content;
+        $template = $params['cover'] ? 'section-cover.php' : 'section.php';
+        return $this->view->render("theme-core:views/$template", $params);
+    }
+
+    /**
+     * Do a nested render, last render must be a content method
+     *
+     * @param array $renders
+     * @return string
+     */
+    public function nested(array $renders)
+    {
+        $content = '';
+        foreach (array_reverse($renders) as $method => $args)
+        {
+            if (!method_exists($this, $method)) {
+                throw new MethodNotFoundException('You can only use helper methods', get_class($this), $method);
+            }
+            if ($content) $args[] = $content;
+            $content = call_user_func_array([$this, $method], $args);
+        }
+        return $content;
+    }
+
+    // Misc
 
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName ()
     {
         return "tm";
-    }
-
-    /**
-     * Set a wrapper
-     *
-     * @param   string          $template
-     * @param   string|array    $config
-     * @return  ThemeHelper
-     */
-    protected function wrapper(string $template, $config = [])
-    {
-        $this->wrapper = [
-            'template' => $template,
-            'config' => $config
-        ];
-
-        return $this;
-    }
-
-    /**
-     * Wrap a rendered content
-     *
-     * @param   string  $content
-     * @return  string
-     */
-    protected function wrap(string $content)
-    {
-        if (!empty($this->wrapper)) {
-            $this->wrapper['config']['content'] = $content;
-            return $this->view->render($this->wrapper['template'], $this->wrapper['config']);
-        }
-        else {
-            return $content;
-        }
     }
 
     /**

@@ -31,27 +31,6 @@ return [
         'Foot' => 'Footer'
     ],
 
-    'widget' => [
-        'style' => 'uk-card-default',
-        'hover' => false,
-        'size' => '',
-        'alignment' => '',
-        'heading' => [
-            'style' => '',
-            'tag' => 'h3'
-        ],
-        'width' => '',
-        'visibility' => [
-            'visible' => '',
-            'hidden' => '',
-            'screen' =>''
-        ],
-        'media_img' => '',
-        'media_pos' => 'top',
-        'badge_text' => '',
-        'badge_style' => ''
-    ],
-
     'config' => [
         'logo_inverse' => '',
         'css' => ''

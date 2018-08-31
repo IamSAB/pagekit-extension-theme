@@ -2,9 +2,9 @@ module.exports = [
 
     {
         entry: {
-            "node-theme": "./app/components/node-theme.vue",
-            "site-theme": "./app/components/site-theme.vue",
-            "widget-theme": "./app/components/widget-theme.vue",
+            "SiteSettingTheme": "./app/components/SiteSettingTheme.vue",
+            "SiteNodeTheme": "./app/components/SiteNodeTheme",
+            "SiteWidgetTheme": "./app/components/SiteWidgetTheme.vue",
             "uikit": "./app/uikit.js"
         },
         output: {

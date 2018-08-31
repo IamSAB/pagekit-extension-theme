@@ -1,30 +1,27 @@
 <template>
 
-    <div class="uk-grid pk-grid-large" data-uk-grid-margin>
-        <div class="pk-width-sidebar">
-            <div class="uk-search">
-                <input class="uk-search-field" type="text" v-model="search" debounce="500">
-                <p class="uk-form-help-block">{{ 'Search the path of each setting' | trans }}</p>
-            </div>
-            <div class="uk-panel uk-panel-box uk-panel-box-secondary uk-margin top">
-                <ul class="uk-breadcrumb">
+    <div>
+        <div class="uk-flex uk-flex-middle uk-flex-space-between uk-flex-wrap">
+            <div class="uk-flex uk-flex-middle uk-margin-bottom">
+                <ul class="uk-breadcrumb uk-margin-remove">
                     <li v-for="item in breadcrumbs" :class="{'uk-active': item.active}" :key="item.path">
                         <span v-if="item.active" @click="navigate(item.path)">{{ item.title }}</span>
                         <a v-else @click="navigate(item.path)">{{ item.title }}</a>
                     </li>
                 </ul>
-                <hr>
-                <ul class="uk-nav uk-nav-side pk-nav-large">
-                    <li v-for="item in navigation" :key="item.path">
+                <i class="uk-margin-left uk-margin-small-right uk-icon-chevron-right"></i>
+                <ul class="uk-subnav uk-subnav-line uk-margin-remove">
+                    <li v-for="item in navigation" :key="item.path" class="uk-margin-remove">
                         <a @click="navigate(item.path)">{{ item.title }}</a>
                     </li>
                 </ul>
-                <h3 v-if="!navigation.length" class="uk-text-muted">{{'No child categories' | trans }}</h3>
+                <span v-if="!navigation.length" class="uk-margin-small-left uk-text-muted uk">{{'No children' | trans }}</span>
             </div>
-        </div>
-        <div class="pk-width-content">
-            <div class="uk-margin uk-flex uk-flex-space-between uk-flex-wrap" data-uk-grid-margin>
-                <h3 class="uk-text-muted">{{ components.length }} of {{ settings.length }} {{'settings shown' | trans }}</h3>
+            <span class="uk-text-muted uk-text-large uk-margin-bottom">{{ components.length }} of {{ settings.length }} {{'settings shown' | trans }}</span>
+            <div class="uk-flex uk-margin-bottom">
+                <div class="uk-search">
+                    <input class="uk-search-field" type="text" placeholder="Search path ..." v-model="search" debounce="1000">
+                </div>
                 <ul class="uk-subnav pk-subnav-icon">
                     <li :class="{'uk-active': view == 'list'}">
                         <a class="pk-icon-table pk-icon-hover" :title="'List View' | trans" data-uk-tooltip="{delay: 500}" @click.prevent="view = 'list'"></a>
@@ -34,13 +31,15 @@
                     </li>
                 </ul>
             </div>
+        </div>
+        <div>
             <form class="uk-form" :class="{'uk-form-horizontal': view == 'list', 'uk-form-stacked': view == 'grid'}">
-                <ul  v-if="components.length" class="uk-grid uk-grid-small" :class="{'uk-grid-width-medium-1-2': view == 'grid'}" data-uk-grid-margin>
+                <ul  v-if="components.length" class="uk-grid uk-grid-small" :class="{'uk-grid-width-medium-1-2 uk-grid-width-large-1-3': view == 'grid'}" data-uk-grid-margin>
                     <li v-for="item in components" :key="item.path" :class="{'uk-width-1-1': view == 'list'}">
                         <div class="uk-panel uk-panel-box uk-panel-box-secondary">
                             <div class="uk-panel-badge uk-badge">{{ item.path.split('.').join(' / ') }}</div>
                             <h2 class="uk-panel-title">{{ item.title }}</h2>
-                            <component :is="item.component"  :setting.sync="node.theme[item.component]"></component>
+                            <component :is="item.component"  :setting="theme[item.component]"></component>
                         </div>
                     </li>
                 </ul>
@@ -52,140 +51,23 @@
 </template>
 
 <script>
-    // Base
-    import Section from './setting/Section.vue';
-    import Position from './setting/Position.vue';
-
-    // Head
-    import Navbar from './setting/Navbar.vue';
-
-    // Top
-    const PositionHero = {
-            extends: Position,
-            path: 'Head.Hero.Position'
-        },
-        SectionHero = {
-            extends: Section,
-            path: 'Head.Hero.Section'
-        },
-        SectionTopA = {
-            extends: Section,
-            path: 'Top.A.Section'
-        },
-        SectionTopB = {
-            extends: Section,
-            path: 'Top.B.Section'
-        },
-        SectionTopC = {
-            extends: Section,
-            path: 'Top.C.Section'
-        },
-        SectionTopD = {
-            extends: Section,
-            path: 'Top.D.Section'
-        },
-        PositionTopA = {
-            extends: Position,
-            path: 'Top.A.Position'
-        },
-        PositionTopB = {
-            extends: Position,
-            path: 'Top.B.Position'
-        },
-        PositionTopC = {
-            extends: Position,
-            path: 'Top.C.Position'
-        },
-        PositionTopD = {
-            extends: Position,
-            path: 'Top.D.Position'
-        }
-
-    // Main
-    import Content from './setting/Content.vue';
-    const SectionMain = {
-        extends: Section,
-            path: 'Main.Section'
-        },
-        PositionMainTop = {
-            extends: Position,
-            path: 'Main.Top.Position'
-        },
-        PositionMainBottom = {
-            extends: Position,
-            path: 'Main.Bottom.Position'
-        }
-
-    // Bottom
-    const SectionBottomA = {
-            extends: Section,
-            path: 'Bottom.A.Section'
-        },
-        SectionBottomB = {
-            extends: Section,
-            path: 'Bottom.B.Section'
-        },
-        SectionBottomC = {
-            extends: Section,
-            path: 'Bottom.C.Section'
-        },
-        SectionBottomD = {
-            extends: Section,
-            path: 'Bottom.D.Section'
-        },
-        PositionBottomA = {
-            extends: Position,
-            path: 'Bottom.A.Position'
-        },
-        PositionBottomB = {
-            extends: Position,
-            path: 'Bottom.B.Position'
-        },
-        PositionBottomC = {
-            extends: Position,
-            path: 'Bottom.C.Position'
-        },
-        PositionBottomD = {
-            extends: Position,
-            path: 'Bottom.D.Position'
-        }
-
-    // Foot
-    const SectionFoot = {
-            extends: Section,
-            path: 'Foot.Section'
-        },
-        PositionFoot = {
-            extends: Position,
-            path: 'Foot.Position'
-        }
 
     module.exports = {
-
-        section: {
-            label: 'Theme',
-            priority: 90
-        },
-
-        props: {
-            node: {
-                type: Object,
-                required: true
-            }
-        },
 
         data: () => ({
             search: '',
             filter: '',
             path: '',
-            view: 'list',
-            active: ['SectionMain'],
-            settings: []
+            view: 'grid',
+            active: [],
+            settings: [],
+            sorting: [],
+            theme: []
         }),
 
         created () {
             _.forIn(this.$options.components, (component, name) => {
-                var options = component.options || {};
+                const options = component.options || {};
                 if (options.path) {
                     this.settings.push({
                         path: options.path,
@@ -227,7 +109,7 @@
             },
 
             navigation () {
-                var match,
+                let match,
                     items = [],
                     path = _.escapeRegExp(this.path),
                     reg = this.path ? new RegExp('(?<=' + path + '\\.).*?(?=\\.)','i') : new RegExp('^[^.]*','i');
@@ -281,7 +163,7 @@
                     }
                 }
                 crumbs.unshift({
-                    title: this.$trans('Root'),
+                    title: this.$trans('Theme'),
                     path: '',
                     active: !this.path
                 });
@@ -298,8 +180,7 @@
             },
 
             sort (array) {
-                const sort = ['Head','Top','Main','Bottom','Foot'],
-                      reg = new RegExp('[^.]*');
+                const reg = new RegExp('[^.]*');
                 let aMatch, bMatch;
                 return array.sort((a,b) => {
                     aMatch = a.path.match(reg)[0];
@@ -307,51 +188,18 @@
                     if ( aMatch == bMatch) {
                         return a.path.localeCompare(b.path);
                     }
-                    else {
-                        return sort.indexOf(aMatch) - sort.indexOf(bMatch);
+                    else if (this.sorting.length) {
+                        return this.sorting.indexOf(aMatch) - this.sorting.indexOf(bMatch);
                     }
                 });
             }
 
-        },
-
-        components: {
-            Navbar,
-            SectionHero,
-            PositionHero,
-            SectionTopA,
-            PositionTopA,
-            SectionTopB,
-            PositionTopB,
-            SectionTopC,
-            PositionTopC,
-            SectionTopD,
-            PositionTopD,
-            PositionMainTop,
-            PositionMainBottom,
-            SectionMain,
-            Content,
-            SectionBottomA,
-            PositionBottomA,
-            SectionBottomB,
-            PositionBottomB,
-            SectionBottomC,
-            PositionBottomC,
-            SectionBottomD,
-            PositionBottomD,
-            SectionFoot,
-            PositionFoot
         }
-
     }
 
     Vue.component('SelectClass', require('./SelectClass.vue'));
     Vue.component('SelectClassResponsive', require('./SelectClassResponsive.vue'));
     Vue.component('SelectJsOpts', require('./SelectJsOpts.vue'));
     Vue.component('CheckboxClass', require('./CheckboxClass.vue'));
-
-    if (window.$data.node.type != 'link') {
-        window.Site.components['node-theme'] = module.exports;
-    }
 
 </script>
