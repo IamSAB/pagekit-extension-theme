@@ -75,6 +75,13 @@
                     });
                 }
             });
+            this.theme = this.node.theme;
+        },
+
+        events: {
+            'setting.update': function (name, value) {
+                this.node.theme[name] = value;
+            }
         },
 
         watch: {

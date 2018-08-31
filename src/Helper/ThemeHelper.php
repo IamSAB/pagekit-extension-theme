@@ -1,11 +1,11 @@
 <?php
 
-namespace SAB\Penta\Helper;
+namespace SAB\Extension\Theme\Helper;
 
 use Pagekit\View\Helper\Helper;
-use SAB\Penta\Theme;
 use Prophecy\Exception\Doubler\MethodNotFoundException;
 use Pagekit\Widget\Model\Widget;
+use SAB\Extension\Theme\ThemeModule;
 
 class ThemeHelper extends Helper
 {
@@ -108,6 +108,6 @@ class ThemeHelper extends Helper
      */
     protected function getConfig($prefix, $config)
     {
-        return is_string($config) ? $this->view->params[$prefix.$config] : array_merge($config, constant(sprintf('%s::%s', Theme::class, $prefix)));
+        return is_string($config) ? $this->view->params[$prefix.$config] : array_merge($config, constant(sprintf('%s::%s', ThemeModule::class, $prefix)));
     }
 }

@@ -1,11 +1,11 @@
 <?php
 
-use SAB\Penta\Theme;
-use SAB\Penta\Helper\ThemeHelper;
+use SAB\Extension\Theme\Theme;
+use SAB\Extension\Theme\Helper\ThemeHelper;
 
 return [
 
-    'name' => 'theme-penta',
+    'name' => 'theme-core',
 
     'menus' => [
         'main' => 'Main',
@@ -13,10 +13,10 @@ return [
     ],
 
     'autoload' => [
-        'SAB\\Penta\\' => 'src'
+        'SAB\\Extension\\Theme\\' => 'src'
     ],
 
-    'main' => 'SAB\\Penta\\Theme',
+    'main' => 'SAB\\Extension\\Theme\\ThemeModule',
 
 
     'positions' => [

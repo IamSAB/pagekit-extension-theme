@@ -1,12 +1,12 @@
 <?php
 
-namespace SAB\Penta;
+namespace SAB\Extension\Theme;
 
 use Pagekit\Module\Module;
 use Pagekit\Application;
 
 
-class Theme extends Module
+class ThemeModule extends Module
 {
 
     const Section = [

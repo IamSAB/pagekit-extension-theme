@@ -92,8 +92,8 @@
 
 <script>
 
-    import InputCover from "../InputCover.vue";
-    import InputBackground from "../InputBackground.vue";
+    import InputCover from "./InputCover.vue";
+    import InputBackground from "./InputBackground.vue";
 
     module.exports = {
 
