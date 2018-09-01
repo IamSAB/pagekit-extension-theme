@@ -6,10 +6,10 @@ use Pagekit\View\Helper\Helper;
 use Prophecy\Exception\Doubler\MethodNotFoundException;
 use Pagekit\Widget\Model\Widget;
 use SAB\Extension\Theme\ThemeModule;
+use Pagekit\Site\Model\Node;
 
 class ThemeHelper extends Helper
 {
-    // Content
 
     /**
      * Render a position
@@ -44,6 +44,61 @@ class ThemeHelper extends Helper
     }
 
     /**
+     * Render a menu
+     *
+     * @param   string  $name   menu title
+     * @param   string  $type   nav type
+     * @param   array   $params parameters for nav type
+     * @return  string
+     */
+    public function menu(string $name, string $type, array $params = [])
+    {
+        $config = [
+            'nav' => [
+                'modifier' => '', // uk-nav-default or uk-nav-primary, uk-nav-center
+            ],
+            'navbar' => [
+                'part' => ''
+            ],
+            'subnav' => [
+                'modifier' => '', // uk-subnav-divider or uk-subnav-pill
+                'click' => true
+            ],
+            'tab' => [
+                'modifier' => '', // uk-tab-(bottom|left|right), uk-flex-(left|center|right) and uk-child-width-expand
+                'click' => true
+            ]
+        ];
+        $params = array_replace($config[$type], $params);
+        $params['nodes'] = $this->view->menu()->getRoot($name);
+        return $this->view->render("theme-core:views/$type-nav.php", $params);
+    }
+
+    public function menuCenterSplitLogo(string $name)
+    {
+        $root = $this->view->menu()->getRoot($name);
+        $chunks = array_chunk($root->getChildren(),ceil($root->count()/2));
+        $params = [
+            'left' => $chunks[0],
+            'right' => $chunks[1]
+        ];
+        return $this->view->render('theme-core:views/navbar-nav-center-split-logo.php', $params);
+    }
+
+    public function recursiveNav($node, $level = 0)
+    {
+        $params = compact('level');
+        $params['root'] = $node;
+        return $this->view->render('theme-core:views/recursive-nav.php', $params);
+    }
+
+    public function logo()
+    {
+        return $this->view->render('theme-core:views/logo.php');
+    }
+
+
+    /**
      * Render a custom template
      *
      * @param   string  $template
@@ -55,7 +110,12 @@ class ThemeHelper extends Helper
         return $this->view->render($template, $params);
     }
 
-    // Wrapper
+    public function navbar($content)
+    {
+        $params = $this->getConfig('', 'Navbar');
+        $params['content'] = $content;
+        return $this->view->render('theme-core:views/navbar.php', $params);
+    }
 
     /**
      * Render a section
@@ -64,7 +124,7 @@ class ThemeHelper extends Helper
      * @return  string
      */
     public function section($config, string $content)
-    {
+        {
         $params = $this->getConfig('Section', $config);
         $params['content'] = $content;
         $template = $params['cover'] ? 'section-cover.php' : 'section.php';

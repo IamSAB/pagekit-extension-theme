@@ -1,4 +1,4 @@
-<ul class="uk-navbar-nav <?= $breakpoint ? 'uk-visible-@'.$breakpoint : '' ?>">
+<ul class="uk-navbar-nav">
 
     <?php foreach($nodes as $node) : ?>
 
@@ -8,7 +8,9 @@
 
             <?php if ($node->hasChildren()) : ?>
                 <div class="uk-navbar-dropdown">
-                    <?= $view->render('nav.php', ['root' => $node, 'modifier' =>'uk-navbar-dropdown-nav','parent_depth' => 1]) ?>
+                    <ul class="uk-nav uk-navbar-dropdown-nav">
+                        <?= $view->tm()->recursiveNav($node) ?>
+                    </ul>
                 </div>
             <?php endif ?>
 

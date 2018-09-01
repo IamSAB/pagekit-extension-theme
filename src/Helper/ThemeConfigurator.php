@@ -32,6 +32,11 @@ class ThemeConfigurator
         'custom' => ''
     ];
 
+    const Navbar = [
+        'transparent' => false,
+        'expand' => false,
+    ];
+
     /**
      * @param Module $module theme module to configure
      */
@@ -117,5 +122,10 @@ class ThemeConfigurator
     public function addWidgetOption()
     {
         $this->module->options['widget'] = self::Widget;
+    }
+
+    public function addNavbarOption()
+    {
+        $this->addNodeOption('Navbar', self::Navbar);
     }
 }
