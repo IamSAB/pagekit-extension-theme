@@ -97,7 +97,7 @@
 
     module.exports = {
 
-        extends: require('./Setting.js'),
+        extends: require('./setting.js'),
 
         watch: {
             cover (value, old) {
@@ -140,5 +140,7 @@
             InputBackground
         }
     }
+
+    window.$components['segment'] = module.exports;
 
 </script>

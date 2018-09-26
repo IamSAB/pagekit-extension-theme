@@ -70,7 +70,6 @@
             </div>
         </div>
 
-
         <div class="uk-form-row">
             <label for="form-hero-height" class="uk-form-label">{{ 'Fixed height' | trans }}</label>
             <div class="uk-form-controls">
@@ -114,16 +113,6 @@
         </div>
 
         <div class="uk-form-row">
-            <label class="uk-form-label">{{ 'Render' | trans }}</label>
-            <div class="uk-form-controls">
-                <label>
-                    <input type="checkbox" v-model="setting.renderAlways">
-                    {{ 'Render position even if it has not widgets assigned.' | trans }}
-                </label>
-            </div>
-        </div>
-
-        <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Custom class' | trans }}</label>
             <div class="uk-form-controls">
                 <input type="text" class="uk-form-width-large" v-model="setting.custom" lazy>
@@ -138,7 +127,7 @@
 
     module.exports = {
 
-        extends: require('./Setting.js'),
+        extends: require('./setting.js'),
 
         data: () => ({
             gutters: {
@@ -171,5 +160,7 @@
             }
         })
     }
+
+    window.$components['grid'] = module.exports;
 
 </script>

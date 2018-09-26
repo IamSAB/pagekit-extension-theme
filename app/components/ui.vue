@@ -1,6 +1,7 @@
 <template>
 
     <div>
+
         <div class="uk-flex uk-flex-middle uk-flex-space-between uk-flex-wrap">
             <div class="uk-flex uk-flex-middle uk-margin-bottom">
                 <ul class="uk-breadcrumb uk-margin-remove">
@@ -12,12 +13,12 @@
                 <i class="uk-margin-left uk-margin-small-right uk-icon-chevron-right"></i>
                 <ul class="uk-subnav uk-subnav-line uk-margin-remove">
                     <li v-for="item in navigation" :key="item.path" class="uk-margin-remove">
-                        <a @click="navigate(item.path)">{{ item.title }}</a>
+                        <a @click="navigate(item.path)">{{ item.title }} ({{ item.children }})</a>
                     </li>
                 </ul>
                 <span v-if="!navigation.length" class="uk-margin-small-left uk-text-muted uk">{{'No children' | trans }}</span>
             </div>
-            <span class="uk-text-muted uk-text-large uk-margin-bottom">{{ components.length }} of {{ settings.length }} {{'settings shown' | trans }}</span>
+            <span class="uk-text-muted uk-text-large uk-margin-bottom">{{ active.length }} of {{ settings.length }} {{'settings shown' | trans }}</span>
             <div class="uk-flex uk-margin-bottom">
                 <div class="uk-search">
                     <input class="uk-search-field" type="text" placeholder="Search path ..." v-model="search" debounce="1000">
@@ -34,12 +35,11 @@
         </div>
         <div>
             <form class="uk-form" :class="{'uk-form-horizontal': view == 'list', 'uk-form-stacked': view == 'grid'}">
-                <ul  v-if="components.length" class="uk-grid uk-grid-small" :class="{'uk-grid-width-medium-1-2 uk-grid-width-large-1-3': view == 'grid'}" data-uk-grid-margin>
-                    <li v-for="item in components" :key="item.path" :class="{'uk-width-1-1': view == 'list'}">
+                <ul  v-if="active.length" class="uk-grid uk-grid-small" :class="{'uk-grid-width-medium-1-2 uk-grid-width-large-1-3': view == 'grid'}" data-uk-grid-margin>
+                    <li v-for="item in active" :key="item.path" :class="{'uk-width-1-1': view == 'list'}">
                         <div class="uk-panel uk-panel-box uk-panel-box-secondary">
-                            <div class="uk-panel-badge uk-badge">{{ item.path.split('.').join(' / ') }}</div>
-                            <h2 class="uk-panel-title">{{ item.title }}</h2>
-                            <component :is="item.component"  :setting="theme[item.component]"></component>
+                            <h3 class="uk-panel-title">{{ item.title }} | <span class="uk-text-muted">{{ capitalize(item.component) }}</span></h3>
+                            <component :is="item.component"  :setting="config[item.component][item.name]"></component>
                         </div>
                     </li>
                 </ul>
@@ -52,126 +52,93 @@
 
 <script>
 
+    console.log(window.$components);
+
     module.exports = {
-
-        section: {
-            label: 'Theme',
-            priority: 90
-        },
-
-        props: {
-            node: {
-                type: Object,
-                required: true
-            }
-        },
 
         data: () => ({
             search: '',
             filter: '',
             path: '',
             view: 'grid',
-            active: [],
-            settings: [],
-            sorting: ['Head','Top','Main','Bottom','Foot'],
-            theme: []
+            settings: window.$settings, // initalized settings
+            configPath: '', // config path for settings
+            sorting: [], // sorting for settings applied to first path subset
+            showIfs: [] // showIf conditions for settings
         }),
 
-        created () {
-            _.forIn(this.$options.components, (component, name) => {
-                const options = component.options || {};
-                if (options.path) {
-                    this.settings.push({
-                        path: options.path,
-                        component: name
-                    });
-                }
-            });
-            this.theme = this.node.theme;
-        },
-
-        events: {
-            'setting.update': function (name, value) {
-                this.node.theme[name] = value;
-            }
-        },
-
-        watch: {
-            view () {
-                $(window).trigger("resize");
-            }
+        beforeCreate () {
+            this.$options.components = window.Components;
         },
 
         computed: {
 
-            filtered () {
-                let filtered = this.settings,
-                    sort = ['Head','Top','Main','Bottom','Foot'],
-                    regex = new RegExp('[^.]*');
-                if (this.filter) {
-                    filtered = _.filter(this.settings, (setting) => {
-                        return setting.path.match(new RegExp(this.filter,'i'));
-                    });
-                }
-                let aMatch, bMatch;
-
-                return filtered.sort((a,b) => {
-                    aMatch = a.path.match(regex)[0];
-                    bMatch = b.path.match(regex)[0];
-                    if ( aMatch == bMatch) {
-                        return a.path - b.path;
-                    }
-                    else {
-                        return sort.indexOf(aMatch) - sort.indexOf(bMatch);
-                    }
-                });
+            config () {
+                return this.$get(this.configPath);
             },
 
             navigation () {
-                let match,
-                    items = [],
-                    path = _.escapeRegExp(this.path),
-                    reg = this.path ? new RegExp('(?<=' + path + '\\.).*?(?=\\.)','i') : new RegExp('^[^.]*','i');
+                let children = [],
+                    match;
+                const regex = this.path ? new RegExp('(?<=^'+_.escapeRegExp(this.path)+'\/)([a-z]+)') : new RegExp('^[a-z]+');
                 _.each(this.settings, (setting) => {
-                    match = setting.path.match(reg);
-                    if (match && !_.find(items,{title: match})) {
-                        items.push({
-                            title: match,
-                            component: setting.component,
-                            path: ((this.path ? this.path +'.' : '') + match)
-                        })
+                    if (match = setting.path.match(regex)) {
+                        children.push(match[0]);
                     }
                 });
+
+                let map = {};
+                _.each(children, (child) => {
+                    if (_.has(map, child)) {
+                        map[child]++;
+                    }
+                    else {
+                        map[child] = 1;
+                    }
+                });
+
+                let items = [];
+                _.forOwn(map, (value, key) => {
+                    items.push({
+                        title: _.capitalize(key),
+                        path: this.path ? this.path+'/'+key : key,
+                        children: value
+                    });
+                });
+
                 return this.sort(items);
             },
 
-            components () {
-                let items = [], match, reg;
-                if (this.search) {
-                    const search = _.escapeRegExp(this.search);
-                    reg = new RegExp(search,'i');
-                }
-                else {
-                    const path = _.escapeRegExp(this.path);
-                    reg = (this.path ? new RegExp('(?<=^' + path + '\\.)[^.]*$', 'i') : new RegExp('^[^.]*$', 'i'));
-                }
-                _.each(this.settings, (setting) => {
-                    match = setting.path.match(reg);
-                    if (match) {
-                        items.push({
-                            title: match,
-                            component: setting.component,
-                            path: setting.path
-                        })
-                    }
-                })
-                return this.sort(items);
+            active () {
+                return _.filter(this.settings, (setting) => {
+                    return this.path == setting.path;
+                });
             },
+
+            // active () {
+            //     let items = [], match, reg, showIf;
+            //     if (this.search) {
+            //         const search = _.escapeRegExp(this.search);
+            //         reg = new RegExp(search,'i');
+            //     }
+            //     else {
+            //         const path = _.escapeRegExp(this.path);
+            //         reg = (this.path ? new RegExp('(?<=^' + path + '\\.)[^.]*$', 'i') : new RegExp('^[^.]*$', 'i'));
+            //     }
+            //     _.each(this.filtered, (item) => {
+            //         match = item.path.match(reg);
+            //         if (match) {
+            //             item.title = item.path.split('.').slice(-1)[0],
+            //             items.push(item);
+            //         }
+            //     })
+            //     return this.sort(items);
+            // },
 
             breadcrumbs () {
                 let crumbs = [];
                 if (this.path) {
-                    let parts = this.path.split('.');
+                    let parts = this.path.split('/');
                     const l = parts.length;
                     for (let i = 0; i < l; i++) {
                         crumbs.unshift({
@@ -199,7 +166,7 @@
             },
 
             sort (array) {
-                const reg = new RegExp('[^.]*');
+                const reg = new RegExp('[^/]*');
                 let aMatch, bMatch;
                 return array.sort((a,b) => {
                     aMatch = a.path.match(reg)[0];
@@ -211,9 +178,30 @@
                         return this.sorting.indexOf(aMatch) - this.sorting.indexOf(bMatch);
                     }
                 });
-            }
+            },
 
-        }
+            showIf (setting, dataPath, condition) {
+                this.showIfs.push({
+                    setting: setting,
+                    dataPath: dataPath,
+                    condition: condition // has to be a function
+                })
+            },
+
+            capitalize (string) {
+                return _.capitalize(string);
+            },
+
+        },
+
+        events: {
+            update(setting, value) {
+                this.$set(this.configPath+'.'+setting, value);
+            }
+        },
+
+        components: window.$components
+
     }
 
     Vue.component('SelectClass', require('./SelectClass.vue'));

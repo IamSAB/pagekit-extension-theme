@@ -3,143 +3,37 @@
 namespace SAB\Extension\Theme\Helper;
 
 use Pagekit\View\Helper\Helper;
-use Prophecy\Exception\Doubler\MethodNotFoundException;
 use Pagekit\Widget\Model\Widget;
 use SAB\Extension\Theme\ThemeModule;
 use Pagekit\Site\Model\Node;
+use Pagekit\Util\Arr;
+use Pagekit\Module\Module;
 
 class ThemeHelper extends Helper
 {
+    protected $widget = null;
+
+    function __construct(array $methods)
+    {
+        $this->methods = $methods;
+    }
+
+    protected function theme()
+    {
+        return $this->widget ? $this->widget : $this->theme;
+    }
+
+    // Util
 
     /**
-     * Render a position
+     * Apply one or more wrapper to a renderer
      *
-     * @param   string  $position
-     * @param   array   $config
+     * @param   array   $renders
      * @return  string
      */
-    public function position(string $position, array $params = [])
+    public function nested(array $wrapper, string $renderer, array $args)
     {
-        if (empty($config)) {
-            $config = $position;
-        }
-        $params = $this->getConfig('Position', $config);
-        return $this->view->position($position, 'theme-core:views/position.php', $params);
-    }
-
-    /**
-     * Render a widget
-     *
-     * @param Widget $widget
-     * @return string
-     */
-    public function widget(Widget $widget)
-    {
-        $params = array_merge([
-            'title' => $widget->title,
-            'content' => $widget->get('result'),
-        ], $widget->theme);
-
-        return $this->view->render('theme-core:views/widget.php', $params);
-    }
-
-    /**
-     * Render a menu
-     *
-     * @param   string  $name   menu title
-     * @param   string  $type   nav type
-     * @param   array   $params parameters for nav type
-     * @return  string
-     */
-    public function menu(string $name, string $type, array $params = [])
-    {
-        $config = [
-            'nav' => [
-                'modifier' => '', // uk-nav-default or uk-nav-primary, uk-nav-center
-            ],
-            'navbar' => [
-                'part' => ''
-            ],
-            'subnav' => [
-                'modifier' => '', // uk-subnav-divider or uk-subnav-pill
-                'click' => true
-            ],
-            'tab' => [
-                'modifier' => '', // uk-tab-(bottom|left|right), uk-flex-(left|center|right) and uk-child-width-expand
-                'click' => true
-            ]
-        ];
-        $params = array_replace($config[$type], $params);
-        $params['nodes'] = $this->view->menu()->getRoot($name);
-        return $this->view->render("theme-core:views/$type-nav.php", $params);
-    }
-
-    public function menuCenterSplitLogo(string $name)
-    {
-        $root = $this->view->menu()->getRoot($name);
-        $chunks = array_chunk($root->getChildren(),ceil($root->count()/2));
-        $params = [
-            'left' => $chunks[0],
-            'right' => $chunks[1]
-        ];
-        return $this->view->render('theme-core:views/navbar-nav-center-split-logo.php', $params);
-    }
-
-    public function recursiveNav($node, $level = 0)
-    {
-        $params = compact('level');
-        $params['root'] = $node;
-        return $this->view->render('theme-core:views/recursive-nav.php', $params);
-    }
-
-    public function logo()
-    {
-        return $this->view->render('theme-core:views/logo.php');
-    }
-
-
-    /**
-     * Render a custom template
-     *
-     * @param   string  $template
-     * @param   array   $params
-     * @return  string
-     */
-    public function custom(string $template, array $params = [])
-    {
-        return $this->view->render($template, $params);
-    }
-
-    public function navbar($content)
-    {
-        $params = $this->getConfig('', 'Navbar');
-        $params['content'] = $content;
-        return $this->view->render('theme-core:views/navbar.php', $params);
-    }
-
-    /**
-     * Render a section
-     *
-     * @param   string|array    $config
-     * @return  string
-     */
-    public function section($config, string $content)
-        {
-        $params = $this->getConfig('Section', $config);
-        $params['content'] = $content;
-        $template = $params['cover'] ? 'section-cover.php' : 'section.php';
-        return $this->view->render("theme-core:views/$template", $params);
-    }
-
-    /**
-     * Do a nested render, last render must be a content method
-     *
-     * @param array $renders
-     * @return string
-     */
-    public function nested(array $renders)
-    {
-        $content = '';
+        $content = call_user_func_array([$this, $renderer], $args);
         foreach (array_reverse($renders) as $method => $args)
         {
             if (!method_exists($this, $method)) {
@@ -151,23 +45,53 @@ class ThemeHelper extends Helper
         return $content;
     }
 
-    // Misc
+    public function recursiveNav($node, $level = 0)
+    {
+        $params = compact('level');
+        $params['root'] = $node;
+        return $this->view->render('theme-core:views/recursive-nav.php', $params);
+    }
+
+    // Other
+
+    /**
+     * Render a setting
+     * $args[0] : setting name
+     * $args[1 ...] : setting args
+     *
+     * @param string $setting
+     * @param array $args
+     * @return void
+     */
+    function __call(string $component, array $args)
+    {
+        if (isset($this->methods[$component])) {
+            throw new \BadMethodCallException(sprintf('No setting %s registered.', $setting));
+        }
+
+        $method = $this->methods[$component];
+        $name = $args[0];
+
+        if (!isset($method[$name])) {
+            throw new \InvalidArgumentException(sprintf('No setting %s with name %s loaded.', $setting, $name));
+        }
+
+        if (!isset($method[$name]['php'])) {
+            return "<div>Could not find template '$template' for setting '$setting' with name '{$name}'</div>";
+        }
+
+        $config = $this->view->params[$component][$name];
+        $combine = array_combine($method['args'], array_slice($args, 1, count($method['args'])));
+
+        return $this->view->render($template, array_merge($combine, $this->view->params[$component][$name]));
+    }
 
     /**
      * {@inheritdoc}
      */
-    public function getName ()
+    public function getName()
     {
         return "tm";
     }
 
-    /**
-     * @param   string        $prefix
-     * @param   string|array  $config
-     * @return  array
-     */
-    protected function getConfig($prefix, $config)
-    {
-        return is_string($config) ? $this->view->params[$prefix.$config] : array_merge($config, constant(sprintf('%s::%s', ThemeModule::class, $prefix)));
-    }
 }

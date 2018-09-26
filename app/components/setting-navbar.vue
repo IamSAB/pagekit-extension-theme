@@ -14,6 +14,10 @@
             </div>
         </div>
 
+        <!-- Sticky javascript settings -->
+
+        <!-- Navbar javascript settings -->
+
     </div>
 </template>
 
@@ -21,14 +25,11 @@
 
     module.exports = {
 
-        path: 'Head.Navbar',
+        extend: require('./setting.js')
 
-        props: {
-            setting: {
-                type: Object,
-                required: true
-            }
-        }
     }
+
+    window.$components['navbar'] = module.exports;
+
 
 </script>
