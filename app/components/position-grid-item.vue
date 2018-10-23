@@ -2,7 +2,7 @@
 
     <div>
 
-        <div class="uk-form-row">
+        <!-- <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Type' | trans }}</label>
             <div class="uk-form-controls">
                 <select v-model="setting.layout">
@@ -11,7 +11,7 @@
                     <option value="card">{{ 'Card' |trans }}</option>
                 </select>
             </div>
-        </div>
+        </div> -->
 
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Text alignment' | trans }}</label>
@@ -126,6 +126,6 @@
         })
     }
 
-    window.$components['widget'] = module.exports;
+    window.$components['position-grid-item'] = module.exports;
 
 </script>

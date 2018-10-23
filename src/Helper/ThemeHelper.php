@@ -4,45 +4,18 @@ namespace SAB\Extension\Theme\Helper;
 
 use Pagekit\View\Helper\Helper;
 use Pagekit\Widget\Model\Widget;
-use SAB\Extension\Theme\ThemeModule;
 use Pagekit\Site\Model\Node;
 use Pagekit\Util\Arr;
 use Pagekit\Module\Module;
+use SAB\Extension\Theme\Theme;
 
 class ThemeHelper extends Helper
 {
     protected $widget = null;
 
-    function __construct(array $methods)
+    function __construct(Theme $theme)
     {
-        $this->methods = $methods;
-    }
-
-    protected function theme()
-    {
-        return $this->widget ? $this->widget : $this->theme;
-    }
-
-    // Util
-
-    /**
-     * Apply one or more wrapper to a renderer
-     *
-     * @param   array   $renders
-     * @return  string
-     */
-    public function nested(array $wrapper, string $renderer, array $args)
-    {
-        $content = call_user_func_array([$this, $renderer], $args);
-        foreach (array_reverse($renders) as $method => $args)
-        {
-            if (!method_exists($this, $method)) {
-                throw new MethodNotFoundException('You can only use helper methods', get_class($this), $method);
-            }
-            if ($content) $args[] = $content;
-            $content = call_user_func_array([$this, $method], $args);
-        }
-        return $content;
+        $this->theme = $theme;
     }
 
     public function recursiveNav($node, $level = 0)
@@ -50,6 +23,19 @@ class ThemeHelper extends Helper
         $params = compact('level');
         $params['root'] = $node;
         return $this->view->render('theme-core:views/recursive-nav.php', $params);
+    }
+
+    public function position($name)
+    {
+        $this->view->position($name, 'theme-core/position.php');
+    }
+
+    public function widget(Widget $widget)
+    {
+        $this->widget = $widget;
+        $res = $this->view->render('theme-core/widget.php');
+        $this->widget = null;
+        return $res;
     }
 
     // Other
@@ -63,27 +49,16 @@ class ThemeHelper extends Helper
      * @param array $args
      * @return void
      */
-    function __call(string $component, array $args)
+    function __call(string $col, array $args)
     {
-        if (isset($this->methods[$component])) {
-            throw new \BadMethodCallException(sprintf('No setting %s registered.', $setting));
-        }
-
-        $method = $this->methods[$component];
-        $name = $args[0];
-
-        if (!isset($method[$name])) {
-            throw new \InvalidArgumentException(sprintf('No setting %s with name %s loaded.', $setting, $name));
-        }
-
-        if (!isset($method[$name]['php'])) {
-            return "<div>Could not find template '$template' for setting '$setting' with name '{$name}'</div>";
-        }
-
-        $config = $this->view->params[$component][$name];
-        $combine = array_combine($method['args'], array_slice($args, 1, count($method['args'])));
-
-        return $this->view->render($template, array_merge($combine, $this->view->params[$component][$name]));
+        $el = array_shift($args);
+        $collection = $this->theme->collections->get($col);
+        $element = $collection->elements->get($el);
+        $component = $this->theme->components->get($element->getComponent());
+        $options = $this->view->params[$this->theme->getKey($collection, $element)];
+        $args = array_combine($component->getArgs(), $args);
+        $options = Arr::merge($options, $args);
+        return $component->render($options);
     }
 
     /**
