@@ -2,60 +2,38 @@
 
 namespace SAB\Extension\Theme\Core;
 
-use Pagekit\View\View;
+use Pagekit\Util\Arr;
 
 
-class Component implements ItemInterface
+abstract class Component
 {
-    protected $name;
+    protected $elements;
 
-    protected $options;
+    protected $options = [];
 
-    protected $template;
-
-    protected $script;
-
-    protected $args;
-
-    protected $ifs = [];
-
-    function __construct(string $name, array $options, string $template, string $script, array $args = [])
+    public function __construct()
     {
-        $this->name = $name;
+        $this->elements = new Container();
+    }
+
+    public function add(Element $element)
+    {
+        $this->elements->set($element);
+    }
+
+    public function setOptions(array $options)
+    {
         $this->options = $options;
-        $this->template = $template;
-        $this->script = $script;
-        $this->args = $args;
     }
 
-    public function render(View $view, $options)
+    public function getOptions(Element $element)
     {
-        return $view->render($this->template, $options);
+        return Arr::get($this->options, $element->getName(), []);
     }
 
-    public function addIf($path, $condition)
-    {
-        $this->ifs[$path] = $condition;
-    }
+    abstract public function getDefaultOptions();
 
-    public function getName()
-    {
-        return $this->name;
-    }
+    abstract public function getScript();
 
-    public function getOptions()
-    {
-        return $this->options;
-    }
-
-    public function getScript()
-    {
-        return $this->script;
-    }
-
-    public function getArgs()
-    {
-        return $this->args;
-    }
-
+    abstract public function getUi();
 }

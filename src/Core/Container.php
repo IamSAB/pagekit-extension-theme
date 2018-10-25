@@ -8,14 +8,7 @@ use Pagekit\Util\Arr;
 
 class Container implements \IteratorAggregate
 {
-    protected $instance;
-
     protected $items;
-
-    function __construct($instance)
-    {
-        $this->instance = $instance;
-    }
 
     public function add(ItemInterface $item)
     {
@@ -24,16 +17,12 @@ class Container implements \IteratorAggregate
 
     public function get(string $name)
     {
-        if (Arr::has($this->items, $name)) {
-            $this->items[$name];
-        }
+        return Arr::get($this->items, $name);
     }
 
     public function remove(string $name)
     {
-        if (Arr::has($this->items, $name)) {
-            unset($this->items[$name]);
-        }
+        Arr::remove($name);
     }
 
     public function getIterator()

@@ -6,28 +6,33 @@ use Pagekit\Module\Module;
 use Pagekit\View\View;
 use Pagekit\View\Helper\ScriptHelper;
 
-class Element implements \JsonSerializable, ItemInterface
+class Element implements ItemInterface
 {
     protected $name;
 
-    protected $component;
+    protected $title;
 
-    function __construct(string $name, string $component)
+    protected $description;
+
+    function __construct(string $name, string $title, string $description)
     {
         $this->name =  $name;
-        $this->component = $component;
+        $this->title = $title;
+        $this->description = $description;
     }
 
-    public function getComponent()
+    public function getName()
     {
-        return $this->component;
+        return $this->name;
     }
 
-    public function jsonSerialize()
+    public function getTitle()
     {
-        return [
-            'name' => $this->name,
-            'component' => $this->component
-        ];
+        return $this->title;
+    }
+
+    public function getDescription()
+    {
+        return $this->description;
     }
 }

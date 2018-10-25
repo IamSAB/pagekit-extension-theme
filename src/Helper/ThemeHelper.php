@@ -25,40 +25,11 @@ class ThemeHelper extends Helper
         return $this->view->render('theme-core:views/recursive-nav.php', $params);
     }
 
-    public function position($name)
+    function __call(string $component, array $args)
     {
-        $this->view->position($name, 'theme-core/position.php');
-    }
-
-    public function widget(Widget $widget)
-    {
-        $this->widget = $widget;
-        $res = $this->view->render('theme-core/widget.php');
-        $this->widget = null;
-        return $res;
-    }
-
-    // Other
-
-    /**
-     * Render a setting
-     * $args[0] : setting name
-     * $args[1 ...] : setting args
-     *
-     * @param string $setting
-     * @param array $args
-     * @return void
-     */
-    function __call(string $col, array $args)
-    {
-        $el = array_shift($args);
-        $collection = $this->theme->collections->get($col);
-        $element = $collection->elements->get($el);
-        $component = $this->theme->components->get($element->getComponent());
-        $options = $this->view->params[$this->theme->getKey($collection, $element)];
-        $args = array_combine($component->getArgs(), $args);
-        $options = Arr::merge($options, $args);
-        return $component->render($options);
+        $component = $this->theme->component($component);
+        $component->setOptions($this->view->params[$component->getName()]);
+        return $component;
     }
 
     /**

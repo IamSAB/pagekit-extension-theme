@@ -9,107 +9,118 @@ use Pagekit\Util\Arr;
 use SAB\Extension\Theme\Core\Component;
 use SAB\Extension\Theme\Core\Element;
 use SAB\Extension\Theme\Core\Container;
+use SAB\Extension\Theme\Core\ItemInterface;
 
 
 class Theme implements LoaderInterface
 {
-    const UI_SITE       = 0;
-    const UI_WIDGET     = 1;
-    const UI_SETTINGS   = 2;
-
-    const COLLECTION_DEFAULT = 'default';
+    const UI_SITE       = 'node';
+    const UI_SETTINGS   = 'config';
 
     protected $app;
 
     protected $components;
 
-    protected $elements;
-
-    protected $collections;
-
     function __construct(Application $app)
     {
         $this->app = $app;
-        $this->components = new Container(Component::class);
-        $this->collections = new Container(Collection::class);
-
-        $this->collections->add(new Collection(self::COLLECTION_DEFAULT, self::UI_SETTINGS));
+        $this->components = new Container();
     }
 
-    public function com(Component $component)
+    public function register(ItemInterface $component)
     {
-        $element = new Element($component->getName());
-        $this->collections->get(self::COLLECTION_DEFAULT)->add($element);
-
-        $this->components->add($component);
+        $this->components[$component->getName()] = $component;
     }
 
-    public function col(Collection $collection)
+    public function add(string $component, Element $element)
     {
-        $this->collections->add($collection);
+        $this->components->get($component)->add($element);
     }
 
-    public function getUiData($ui)
+    protected function prefix($string)
     {
-        $arr = [];
-        foreach($this->collections as $name => $collection) {
-            if ($ui == $collection->getUi()) {
-                $arr[$collection->getName()] = $collection->getData();
-            }
-        }
-        return $arr;
-    }
-
-    protected function getUiDependencies($ui)
-    {
-        $groups = [];
-        foreach ($this->collections as $name => $collection) {
-            if ($ui == $collection->getUi()) {
-                $arr = Arr::merge($arr, $collection->getRequiredComponents());
-            }
-        }
-        return $arr;
-    }
-
-    public function getKey(Collection $collection, Element $element)
-    {
-        return implode('-',[$collection->getName(), $element->getName()]);
+        return 'tm-'.$string;
     }
 
     public function load($module)
     {
+        $dependencies = [
+            self::UI_SITE => [],
+            self::UI_SETTINGS => [],
+            'widget' => []
+        ];
+
+        $ui = [
+            self::UI_SITE => [],
+            self::UI_SETTINGS => []
+        ];
+
+        foreach($this->components as $name => $component) {
+
+            $dependencies[$component->getUi()][] = $this->prefix($component->getName());
+
+            if ($component->canEditDefaultOptions() && !$this->app['theme']->has('options-'.$component->getName())) {
+                $module['config']['options-'.$component->getName()] = $component->getDefaultOptions();
+            }
+
+            if ($component instanceOf PositionInterface) {
+                $module['positions'][$component->getName()] = $component->getName();
+                $module['widget'][$component->getName()] = $component->getWidgetDefaultOptions();
+                $dependencies['widget'][] = $this->prefix('widget-'.$component->getName());
+            }
+
+            $options = $this->app['config']->get('options-'.$component->getName(), $component->getDefaultOptions());
+
+            foreach ($component as $name => $element) {
+                $module[$component->getUi()][$component->getName()][$element->getName()] = $options;
+                $ui[$component->getUi()][] = [
+                    'component' => $component->getName(),
+                    'element' => $element->getName(),
+                    'title' => $element->getTitle(),
+                    'description' => $element->getDescription()
+                ];
+            }
+        }
+
         $module->options['events'] = [
             'view.init' => function ($event, $view) {
                 $view->addHelper(new ThemeHelper($this));
             },
             'view.scripts' => function ($scripts, $view) {
-                foreach($this->collections as $collection) {
-                    foreach ($this->components as $name => $component) {
-                        $scripts->register($name, $component);
+                foreach($this->components as $name => $component) {
+                    $scripts->register(
+                        $this->prefix($component->getName()),
+                        $component->getScript()
+                    );
+                    if ($component instanceOf PositionInterface) {
+                        $scripts->register(
+                            $this->prefix('widget-'.$component->getName()),
+                            $component->getWidgetScript()
+                        );
                     }
                 }
             },
-            'view.system/site/admin/edit' => function ($event, $view) {
+            'view.system/site/admin/edit' => function ($event, $view) use($ui, $dependencies) {
                 $view->data('$components', new \stdClass());
-                $view->data('$ui', $this->getUiData(self::UI_SITE));
-                $view->script('node-theme', 'theme-core:app/bundle/node-theme.js', $this->getUiDependencies(self::UI_SITE));
+                $view->data('$ui', $ui[self::UI_SITE]);
+                $view->script('node-theme', 'theme-core:app/bundle/node-theme.js', $dependencies[self::UI_SITE]);
             },
-            'view.system/site/admin/edit' => function ($event, $view) {
-                $view->data('$components', new \stdClass());
-                $view->data('$ui', $this->getUiData(self::UI_WIDGET));
-                $view->script('node-theme', 'theme-core:app/bundle/widget-theme.js', $this->getUiDependencies(self::UI_WIDGET));
+            'view.system/site/widget/edit' => function ($event, $view) {
+                $view->data('$positions', new \stdClass());
+                $dependencies = [];
+                foreach ($this->components as $name => $component) {
+                    if ($component instanceOf PositionInterface) {
+                        $dependencies[] = $this->prefix($component->getName());
+                    }
+                }
+                $view->script('widget-theme', 'theme-core:app/bundle/widget-theme.js');
+                $view->script('widget-theme-positions', 'theme-core:app/bundle/widget-theme.js', $dependencies);
             },
-            'view.system/site/admin/edit' => function ($event, $view) {
+            'view.system/site/settings' => function ($event, $view) use ($ui, $dependencies) {
                 $view->data('$components', new \stdClass());
-                $view->data('$ui', $this->getUiData(self::UI_SETTINGS));
-                $view->script('site-theme', 'theme-core:app/bundle/site-theme.js', $this->getUiDependencies(self::UI_SETTINGS));
+                $view->data('$ui', $ui[self::UI_SETTINGS]);
+                $view->script('site-theme', 'theme-core:app/bundle/site-theme.js', $dependencies[self::UI_SETTINGS]);
             },
         ];
-
-        foreach($this->collections as $collection) {
-            foreach($collection as $element) {
-                Arr::set($module, implode('.', [$collection->getUi(), $this->theme->getKey($collection, $element)]));
-            }
-        }
     }
 }
