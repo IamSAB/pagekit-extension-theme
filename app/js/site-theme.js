@@ -5,15 +5,17 @@ module.exports = {
     section: {
         label: 'Theme',
         icon: 'pk-icon-large-brush',
-        priority: 15
+        priority: 14
     },
 
     data: () => ({
-        config: window.$theme
+        themeName: window.$themeName,
+        themeConfig: window.$themeConfig,
+        topBar: true
     }),
 
     created () {
-        this.configPath = 'config';
+        this.configPath = 'themeConfig';
     },
 
     components: window.$components,
@@ -22,7 +24,7 @@ module.exports = {
 
         save: function() {
 
-            this.$http.post('admin/system/settings/config', {name: this.name, config: this.config}).catch(function (res) {
+            this.$http.post('admin/system/settings/config', {name: this.themeName, config: this.config}).catch(function (res) {
                 this.$notify(res.data, 'danger');
             });
 

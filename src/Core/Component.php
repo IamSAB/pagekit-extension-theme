@@ -44,7 +44,7 @@ abstract class Component extends Container implements ItemInterface
 
     public static function editableDefaultOptions()
     {
-        return true;
+        return false;
     }
 
     abstract public static function getDefaultOptions();

@@ -2,6 +2,15 @@
 
     <div>
 
+        <div v-if="topBar" class="uk-margin uk-flex uk-flex-space-between uk-flex-wrap" data-uk-margin>
+            <div data-uk-margin>
+                <h2 class="uk-margin-remove">{{ 'Theme' | trans }}</h2>
+            </div>
+            <div data-uk-margin>
+                <button class="uk-button uk-button-primary" type="submit">{{ 'Save' | trans }}</button>
+            </div>
+        </div>
+
         <div class="uk-flex uk-flex-middle uk-flex-space-between uk-flex-wrap">
             <div class="uk-flex uk-flex-middle uk-margin-bottom">
                 <ul class="uk-subnav uk-subnav-pill uk-margin-remove">
@@ -26,7 +35,7 @@
             </div>
         </div>
         <div>
-            <form class="uk-form" :class="{'uk-form-horizontal': view == 'list', 'uk-form-stacked': view == 'grid'}">
+            <div class="uk-form" :class="{'uk-form-horizontal': view == 'list', 'uk-form-stacked': view == 'grid'}">
                 <ul  v-if="active.length" class="uk-grid uk-grid-small" :class="{'uk-grid-width-medium-1-2 uk-grid-width-large-1-3': view == 'grid'}" data-uk-grid-margin>
                     <li v-for="item in active" :class="{'uk-width-1-1': view == 'list'}">
                         <div class="uk-panel uk-panel-box uk-panel-box-secondary">
@@ -37,7 +46,7 @@
                     </li>
                 </ul>
                 <h3 class="uk-h1 uk-text-muted uk-text-center" v-else>{{ 'Navigate to see more settings' | trans }}</h3>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -52,7 +61,8 @@
             tags: [],
             view: 'grid',
             ui: window.$ui,
-            configPath: ''
+            configPath: '',
+            topBar: false
         }),
 
         computed: {

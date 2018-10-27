@@ -3,20 +3,20 @@
 namespace SAB\Extension\Theme;
 
 use Pagekit\Application;
+use Pagekit\Module\Module;
 use Pagekit\Module\Loader\LoaderInterface;
 use Pagekit\Util\Arr;
+use Pagekit\Event\Event;
+use Pagekit\View\View;
+use Pagekit\View\Event\ViewEvent;
+use Pagekit\View\Asset\AssetManager;
 use SAB\Extension\Theme\Core\Component;
 use SAB\Extension\Theme\Core\Element;
 use SAB\Extension\Theme\Core\Container;
 use SAB\Extension\Theme\Core\ItemInterface;
 use SAB\Extension\Theme\Core\PositionInterface;
 use SAB\Extension\Theme\Component\GridPosition;
-use Pagekit\Module\Module;
 use SAB\Extension\Theme\Helper\ThemeHelper;
-use Pagekit\View\View;
-use Pagekit\View\Event\ViewEvent;
-use Pagekit\Event\Event;
-use Pagekit\View\Asset\AssetManager;
 
 
 class Theme extends Container implements LoaderInterface, \IteratorAggregate
@@ -48,13 +48,13 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
 
     public function load($module)
     {
+        // only load into a module if its a theme which explicitely requires theme-core
         if ($module['type'] == 'theme' && isset($module['require']) && $module['require'] == 'theme-core') {
 
             $dependencies = [
                 self::UI_SITE => ['site-edit'],
                 self::UI_SETTINGS => ['site-settings'],
-                'widget' => ['widget-edit'],
-                'default' => ['site-settings']
+                'widget' => ['widget-edit'] // TODO constand for widget?
             ];
 
             $ui = [
@@ -67,9 +67,15 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
 
                 $dependencies[$component->getUi()][] = $this->prefix($comName);
 
-                if ($component->editableDefaultOptions() && !$this->app['config']->get($module['name'])->has('default-'.$comName)) {
-                    $dependencies['default'][] = $comName;
-                    $module['config']['default-'.$comName] = $component->getDefaultOptions();
+                if ($component->editableDefaultOptions()) {
+                    $dependencies[Theme::UI_SETTINGS][] = $this->prefix($comName); // TODO component could be added again
+                    $module['config'][$comName]['default'] = $component->getDefaultOptions();
+                    $ui[Theme::UI_SETTINGS][] = [
+                        'component' => $comName,
+                        'element' => 'default',
+                        'title' => 'Defaults for '.ucfirst($comName),
+                        'tags' => ['defaults']
+                    ];
                 }
 
                 $isPosition = $component instanceOf PositionInterface;
@@ -77,10 +83,9 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
                 if ($isPosition) {
                     $module['widget'][$comName] = $component->getWidgetDefaultOptions();
                     $dependencies['widget'][] = $this->prefix('widget-'.$comName);
-                    $ui['widget'][$comName] = [];
                 }
 
-                $options = $this->app['config']->get($module['name'])->get('default-'.$comName, $component->getDefaultOptions());
+                $options = $this->app['config']->get($module['name'])->get($comName.'.default', $component->getDefaultOptions()); // TODO always check config?
 
                 foreach ($component as $elName => $element) {
 
@@ -96,7 +101,7 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
 
                     if($isPosition) {
                         $module['positions'][$elName] = $element->getTitle();
-                        $ui['widget'][$comName][] = $elName;
+                        $ui['widget'][$comName][] = $elName; // needed to determine which widget-position-* script to use for a position
                     }
                 }
 
@@ -106,9 +111,11 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
             Application::log()->debug(json_encode($ui));
 
             $theme = $this;
+            $themeName = $module['name'];
+            $themeConfig = $this->app['config']->get($module['name']);
 
             $module['events'] = [
-                'site' => function (Event $event, Application $app) {
+                'site' => function (Event $event, Application $app) { // only triggered when in frontend
                     $app->on('view.init', function (Event $event, View $view) use ($app) {
                         $view->addHelper(new ThemeHelper($app['tm']));
                     });
@@ -119,7 +126,7 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
                             $theme->prefix($name),
                             $component->getScript()
                         );
-                        if ($component instanceOf PositionInterface) {
+                        if ($component instanceOf PositionInterface) { // register widget position script
                             $scripts->register(
                                 $theme->prefix('widget-'.$name),
                                 $component->getWidgetScript()
@@ -128,7 +135,6 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
                     }
                 },
                 'view.system/site/admin/edit' => function (ViewEvent $event, View $view) use ($ui, $dependencies) {
-                    Application::log()->debug(json_encode($view->params->count()));
                     $view->data('$components', new \stdClass());
                     $view->data('$ui', $ui[Theme::UI_SITE]);
                     $view->script('node-theme', 'theme-core:app/bundle/node-theme.js', $dependencies[Theme::UI_SITE]);
@@ -139,11 +145,12 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
                     $view->script('widget-layout', 'theme-core:app/bundle/widget-layout.js', ['widget-edit']);
                     $view->script('widget-position', 'theme-core:app/bundle/widget-position.js', $dependencies['widget']);
                 },
-                'view.system/site/settings' => function (ViewEvent $event, View $view) use ($ui, $dependencies) {
+                'view.system/site/admin/settings' => function (ViewEvent $event, View $view) use ($themeConfig, $ui, $dependencies) {
+                    $view->data('$themeName', $this->options['name']); // $this refers to Module instance (where callback is executed)
+                    $view->data('$themeConfig', $themeConfig);
                     $view->data('$components', new \stdClass());
                     $view->data('$ui', $ui[Theme::UI_SETTINGS]);
-                    $view->script('site-theme-settings', 'theme-core:app/bundle/site-theme-settings.js', $dependencies[Theme::UI_SETTINGS]);
-                    $view->script('site-theme-defaults', 'theme-core:app/bundle/site-theme-defaults.js', $dependencies['default']);
+                    $view->script('site-theme', 'theme-core:app/bundle/site-theme.js', $dependencies[Theme::UI_SETTINGS]);
                 },
             ];
 

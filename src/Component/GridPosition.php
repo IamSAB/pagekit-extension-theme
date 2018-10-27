@@ -51,6 +51,11 @@ class GridPosition extends Component implements PositionInterface
         ];
     }
 
+    public static function editableDefaultOptions()
+    {
+        return true;
+    }
+
     public function getName()
     {
         return 'grid';
