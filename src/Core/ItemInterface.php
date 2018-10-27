@@ -4,5 +4,5 @@ namespace SAB\Extension\Theme\Core;
 
 interface ItemInterface
 {
-    function getName();
+    public function getName();
 }

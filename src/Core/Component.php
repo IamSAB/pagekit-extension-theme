@@ -5,35 +5,53 @@ namespace SAB\Extension\Theme\Core;
 use Pagekit\Util\Arr;
 
 
-abstract class Component
+abstract class Component extends Container implements ItemInterface
 {
-    protected $elements;
+    const DEFAULT_OPTIONS_FOR_NON_ELEMENTS = 0;
+    const REFUSE_NON_ELEMENTS = 1;
 
-    protected $options = [];
-
-    public function __construct()
+    function __construct()
     {
-        $this->elements = new Container();
+        parent::__construct(Element::class);
     }
 
-    public function add(Element $element)
+    public function setElementOptions(array $options)
     {
-        $this->elements->set($element);
+        foreach ($this as $name => $element) {
+            if (Arr::has($options, $name)) {
+                $element->setOptions($options[$name]);
+            }
+        }
     }
 
-    public function setOptions(array $options)
+    public function getElementOptions(string $element, int $option = self::DEFAULT_OPTIONS_FOR_NON_ELEMENTS)
     {
-        $this->options = $options;
+        if ($element && $this->has($element)) {
+            return $this->get($element)->getOptions();
+        }
+        elseif ($option == self::REFUSE_NON_ELEMENTS ) {
+            throw new \InvalidArgumentException('Element is not registered.');
+        }
+        else {
+            return $this->getDefaultOptions();
+        }
     }
 
-    public function getOptions(Element $element)
+    public function getTags()
     {
-        return Arr::get($this->options, $element->getName(), []);
+        return [$this->getName()];
     }
 
-    abstract public function getDefaultOptions();
+    public static function editableDefaultOptions()
+    {
+        return true;
+    }
 
-    abstract public function getScript();
+    abstract public static function getDefaultOptions();
 
-    abstract public function getUi();
+    abstract public static function getScript();
+
+    abstract public static function getUi();
+
+    abstract public function getName();
 }

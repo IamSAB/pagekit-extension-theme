@@ -4,7 +4,7 @@ namespace SAB\Extension\Theme\Core;
 
 interface PositionInterface
 {
-    public function getWidgetDefaultOptions();
+    public static function getWidgetDefaultOptions();
 
-    public function getWidgetScript();
+    public static function getWidgetScript();
 }

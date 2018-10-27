@@ -3,33 +3,64 @@
 namespace SAB\Extension\Theme\Helper;
 
 use Pagekit\View\Helper\Helper;
-use Pagekit\Widget\Model\Widget;
 use Pagekit\Site\Model\Node;
-use Pagekit\Util\Arr;
-use Pagekit\Module\Module;
 use SAB\Extension\Theme\Theme;
+use Pagekit\Widget\Model\Widget;
+use Pagekit\Application;
+use Pagekit\View\View;
+
 
 class ThemeHelper extends Helper
 {
     protected $widget = null;
 
-    function __construct(Theme $theme)
+    /**
+     * Constructor
+     *
+     * @param Theme $tm
+     */
+    function __construct(Theme $tm)
     {
-        $this->theme = $theme;
+        $this->tm = $tm;
     }
 
-    public function recursiveNav($node, $level = 0)
+    public function register(View $view)
+    {
+        $this->view = $view;
+        foreach ($this->tm as $name => $component) {
+            $component->setElementOptions($this->view->params[$name]);
+        }
+    }
+
+    /**
+     * Recursive render nav nodes (not inteded as start point)
+     *
+     * @param Node $node
+     * @param integer $level
+     * @return void
+     */
+    public function recursiveNav(Node $node, int $level = 0)
     {
         $params = compact('level');
         $params['root'] = $node;
-        return $this->view->render('theme-core:views/recursive-nav.php', $params);
+        return $this->view->render('theme-core/recursive-nav.php', $params);
     }
 
-    function __call(string $component, array $args)
+    public function widget(Widget $widget)
     {
-        $component = $this->theme->component($component);
-        $component->setOptions($this->view->params[$component->getName()]);
-        return $component;
+        $this->view->render('theme-core/widget.php', compact('widget'));
+    }
+
+    /**
+     * Get a registered component
+     *
+     * @param string $component
+     * @param array $args
+     * @return Component
+     */
+    function __call(string $component, $args = [])
+    {
+        return $this->tm->get($component);
     }
 
     /**

@@ -16,8 +16,6 @@ module.exports = {
 
     created () {
         this.configPath = 'node.theme';
-        this.sorting = ['top', 'main', 'bottom', 'foot']
-        this.showIf('Main.Heading', 'node.type', (type) => type == 'page');
     }
 }
 

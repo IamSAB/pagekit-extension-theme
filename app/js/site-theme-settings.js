@@ -16,9 +16,7 @@ module.exports = {
         this.configPath = 'config';
     },
 
-    components: {
-        // register settings
-    },
+    components: window.$components,
 
     events: {
 

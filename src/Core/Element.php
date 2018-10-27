@@ -14,16 +14,26 @@ class Element implements ItemInterface
 
     protected $description;
 
-    function __construct(string $name, string $title, string $description)
+    protected $tags;
+
+    protected $options = [];
+
+    function __construct(string $name, array $tags = [], string $title = '', string $description = '')
     {
         $this->name =  $name;
-        $this->title = $title;
+        $this->tags = $tags;
+        $this->title = $title ? $title : ucfirst($name);
         $this->description = $description;
     }
 
     public function getName()
     {
         return $this->name;
+    }
+
+    public function getTags()
+    {
+        return $this->tags;
     }
 
     public function getTitle()
@@ -34,5 +44,15 @@ class Element implements ItemInterface
     public function getDescription()
     {
         return $this->description;
+    }
+
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
+    }
+
+    public function getOptions()
+    {
+        return $this->options;
     }
 }

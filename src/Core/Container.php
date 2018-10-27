@@ -5,28 +5,59 @@ namespace SAB\Extension\Theme\Core;
 use Pagekit\Util\Arr;
 
 
-
 class Container implements \IteratorAggregate
 {
-    protected $items;
+    private $class;
 
-    public function add(ItemInterface $item)
+    private $items = [];
+
+    function __construct(string $class)
     {
-        $this->items[$item->getName()] = $item;
+        $this->class = $class;
     }
 
-    public function get(string $name)
+    public function add($items)
+    {
+        if (!is_array($items)) {
+            $items = [$items];
+        }
+
+        foreach ($items as $item) {
+            if ($item instanceOf Iteminterface && $item instanceOf $this->class) {
+                Arr::set($this->items, $item->getName(), $item);
+            }
+        }
+    }
+
+    /**
+     * Get item
+     *
+     * @param string|array $name
+     * @return ItemInterface $item
+     */
+    public function get($name)
     {
         return Arr::get($this->items, $name);
     }
 
-    public function remove(string $name)
+    /**
+     * Remove item(s)
+     *
+     * @param string|array $name
+     * @return void
+     */
+    public function remove($name)
     {
-        Arr::remove($name);
+        Arr::remove($this->items, $name);
     }
 
+    /**
+     * Get iterator
+     *
+     * @return array
+     */
     public function getIterator()
     {
-        return $this->items;
+        return new \ArrayIterator($this->items);
     }
 }

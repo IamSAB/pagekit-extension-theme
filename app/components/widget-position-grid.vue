@@ -2,17 +2,6 @@
 
     <div>
 
-        <!-- <div class="uk-form-row">
-            <label class="uk-form-label">{{ 'Type' | trans }}</label>
-            <div class="uk-form-controls">
-                <select v-model="setting.layout">
-                    <option value="panel">{{ 'Panel' |trans }}</option>
-                    <option value="tile">{{ 'Tile' |trans }}</option>
-                    <option value="card">{{ 'Card' |trans }}</option>
-                </select>
-            </div>
-        </div> -->
-
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Text alignment' | trans }}</label>
             <div class="uk-form-controls">
@@ -72,24 +61,14 @@
 
     module.exports = {
 
-        extends: require('./setting.js'),
+        props: {
+            options: {
+                type: Object,
+                required: true
+            }
+        },
 
         data: () => ({
-            cardStyles: {
-                default: 'Default',
-                primary: 'Primary',
-                secondary: 'Secondary'
-            },
-            cardSizes: {
-                small: 'Small',
-                large: 'Large'
-            },
-            tileStyles: {
-                default: 'Default',
-                muted: 'Muted',
-                primary: 'Primary',
-                secondary: 'Secondary'
-            },
             textAlignment: {
                 left: 'Left',
                 right: 'Right',
@@ -99,13 +78,6 @@
             itemOrder: {
                 first: 'First',
                 last: 'Last'
-            },
-            headings: {
-                primary: 'Primary',
-                hero: 'Hero',
-                divider: 'Divider',
-                bullet: 'Bullet',
-                line: 'Line',
             },
             widths: {
                 auto: 'Auto',
@@ -126,6 +98,6 @@
         })
     }
 
-    window.$components['position-grid-item'] = module.exports;
+    window.$positions['grid'] = module.exports;
 
 </script>

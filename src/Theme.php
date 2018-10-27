@@ -3,16 +3,23 @@
 namespace SAB\Extension\Theme;
 
 use Pagekit\Application;
-use SAB\Extension\Theme\Core\Collection;
 use Pagekit\Module\Loader\LoaderInterface;
 use Pagekit\Util\Arr;
 use SAB\Extension\Theme\Core\Component;
 use SAB\Extension\Theme\Core\Element;
 use SAB\Extension\Theme\Core\Container;
 use SAB\Extension\Theme\Core\ItemInterface;
+use SAB\Extension\Theme\Core\PositionInterface;
+use SAB\Extension\Theme\Component\GridPosition;
+use Pagekit\Module\Module;
+use SAB\Extension\Theme\Helper\ThemeHelper;
+use Pagekit\View\View;
+use Pagekit\View\Event\ViewEvent;
+use Pagekit\Event\Event;
+use Pagekit\View\Asset\AssetManager;
 
 
-class Theme implements LoaderInterface
+class Theme extends Container implements LoaderInterface, \IteratorAggregate
 {
     const UI_SITE       = 'node';
     const UI_SETTINGS   = 'config';
@@ -23,104 +30,125 @@ class Theme implements LoaderInterface
 
     function __construct(Application $app)
     {
+        parent::__construct(Component::class);
+
         $this->app = $app;
-        $this->components = new Container();
+
+        $this->add(new GridPosition());
+        $this->get('grid')->add([
+            new Element('top', ['top']),
+            new Element('bottom', ['bottom'])
+        ]);
     }
 
-    public function register(ItemInterface $component)
-    {
-        $this->components[$component->getName()] = $component;
-    }
-
-    public function add(string $component, Element $element)
-    {
-        $this->components->get($component)->add($element);
-    }
-
-    protected function prefix($string)
+    public function prefix($string)
     {
         return 'tm-'.$string;
     }
 
     public function load($module)
     {
-        $dependencies = [
-            self::UI_SITE => [],
-            self::UI_SETTINGS => [],
-            'widget' => []
-        ];
+        if ($module['type'] == 'theme' && isset($module['require']) && $module['require'] == 'theme-core') {
 
-        $ui = [
-            self::UI_SITE => [],
-            self::UI_SETTINGS => []
-        ];
+            $dependencies = [
+                self::UI_SITE => ['site-edit'],
+                self::UI_SETTINGS => ['site-settings'],
+                'widget' => ['widget-edit'],
+                'default' => ['site-settings']
+            ];
 
-        foreach($this->components as $name => $component) {
+            $ui = [
+                self::UI_SITE => [],
+                self::UI_SETTINGS => [],
+                'widget' => []
+            ];
 
-            $dependencies[$component->getUi()][] = $this->prefix($component->getName());
+            foreach($this as $comName => $component) {
 
-            if ($component->canEditDefaultOptions() && !$this->app['theme']->has('options-'.$component->getName())) {
-                $module['config']['options-'.$component->getName()] = $component->getDefaultOptions();
+                $dependencies[$component->getUi()][] = $this->prefix($comName);
+
+                if ($component->editableDefaultOptions() && !$this->app['config']->get($module['name'])->has('default-'.$comName)) {
+                    $dependencies['default'][] = $comName;
+                    $module['config']['default-'.$comName] = $component->getDefaultOptions();
+                }
+
+                $isPosition = $component instanceOf PositionInterface;
+
+                if ($isPosition) {
+                    $module['widget'][$comName] = $component->getWidgetDefaultOptions();
+                    $dependencies['widget'][] = $this->prefix('widget-'.$comName);
+                    $ui['widget'][$comName] = [];
+                }
+
+                $options = $this->app['config']->get($module['name'])->get('default-'.$comName, $component->getDefaultOptions());
+
+                foreach ($component as $elName => $element) {
+
+                    $module[$component->getUi()][$comName][$elName] = $options;
+
+                    $ui[$component->getUi()][] = [
+                        'component' => $comName,
+                        'element' => $elName,
+                        'title' => $element->getTitle(),
+                        'description' => $element->getDescription(),
+                        'tags' => Arr::merge($component->getTags(), $element->getTags())
+                    ];
+
+                    if($isPosition) {
+                        $module['positions'][$elName] = $element->getTitle();
+                        $ui['widget'][$comName][] = $elName;
+                    }
+                }
+
             }
 
-            if ($component instanceOf PositionInterface) {
-                $module['positions'][$component->getName()] = $component->getName();
-                $module['widget'][$component->getName()] = $component->getWidgetDefaultOptions();
-                $dependencies['widget'][] = $this->prefix('widget-'.$component->getName());
-            }
+            Application::log()->debug(json_encode($dependencies));
+            Application::log()->debug(json_encode($ui));
 
-            $options = $this->app['config']->get('options-'.$component->getName(), $component->getDefaultOptions());
+            $theme = $this;
 
-            foreach ($component as $name => $element) {
-                $module[$component->getUi()][$component->getName()][$element->getName()] = $options;
-                $ui[$component->getUi()][] = [
-                    'component' => $component->getName(),
-                    'element' => $element->getName(),
-                    'title' => $element->getTitle(),
-                    'description' => $element->getDescription()
-                ];
-            }
+            $module['events'] = [
+                'site' => function (Event $event, Application $app) {
+                    $app->on('view.init', function (Event $event, View $view) use ($app) {
+                        $view->addHelper(new ThemeHelper($app['tm']));
+                    });
+                },
+                'view.scripts' => function (Event $event, AssetManager $scripts) use ($theme) {
+                    foreach($theme as $name => $component) {
+                        $scripts->register(
+                            $theme->prefix($name),
+                            $component->getScript()
+                        );
+                        if ($component instanceOf PositionInterface) {
+                            $scripts->register(
+                                $theme->prefix('widget-'.$name),
+                                $component->getWidgetScript()
+                            );
+                        }
+                    }
+                },
+                'view.system/site/admin/edit' => function (ViewEvent $event, View $view) use ($ui, $dependencies) {
+                    Application::log()->debug(json_encode($view->params->count()));
+                    $view->data('$components', new \stdClass());
+                    $view->data('$ui', $ui[Theme::UI_SITE]);
+                    $view->script('node-theme', 'theme-core:app/bundle/node-theme.js', $dependencies[Theme::UI_SITE]);
+                },
+                'view.system/widget/edit' => function (ViewEvent $event, View $view) use ($ui, $dependencies)  {
+                    $view->data('$positions', new \stdClass());
+                    $view->data('$ui', $ui['widget']);
+                    $view->script('widget-layout', 'theme-core:app/bundle/widget-layout.js', ['widget-edit']);
+                    $view->script('widget-position', 'theme-core:app/bundle/widget-position.js', $dependencies['widget']);
+                },
+                'view.system/site/settings' => function (ViewEvent $event, View $view) use ($ui, $dependencies) {
+                    $view->data('$components', new \stdClass());
+                    $view->data('$ui', $ui[Theme::UI_SETTINGS]);
+                    $view->script('site-theme-settings', 'theme-core:app/bundle/site-theme-settings.js', $dependencies[Theme::UI_SETTINGS]);
+                    $view->script('site-theme-defaults', 'theme-core:app/bundle/site-theme-defaults.js', $dependencies['default']);
+                },
+            ];
+
         }
 
-        $module->options['events'] = [
-            'view.init' => function ($event, $view) {
-                $view->addHelper(new ThemeHelper($this));
-            },
-            'view.scripts' => function ($scripts, $view) {
-                foreach($this->components as $name => $component) {
-                    $scripts->register(
-                        $this->prefix($component->getName()),
-                        $component->getScript()
-                    );
-                    if ($component instanceOf PositionInterface) {
-                        $scripts->register(
-                            $this->prefix('widget-'.$component->getName()),
-                            $component->getWidgetScript()
-                        );
-                    }
-                }
-            },
-            'view.system/site/admin/edit' => function ($event, $view) use($ui, $dependencies) {
-                $view->data('$components', new \stdClass());
-                $view->data('$ui', $ui[self::UI_SITE]);
-                $view->script('node-theme', 'theme-core:app/bundle/node-theme.js', $dependencies[self::UI_SITE]);
-            },
-            'view.system/site/widget/edit' => function ($event, $view) {
-                $view->data('$positions', new \stdClass());
-                $dependencies = [];
-                foreach ($this->components as $name => $component) {
-                    if ($component instanceOf PositionInterface) {
-                        $dependencies[] = $this->prefix($component->getName());
-                    }
-                }
-                $view->script('widget-theme', 'theme-core:app/bundle/widget-theme.js');
-                $view->script('widget-theme-positions', 'theme-core:app/bundle/widget-theme.js', $dependencies);
-            },
-            'view.system/site/settings' => function ($event, $view) use ($ui, $dependencies) {
-                $view->data('$components', new \stdClass());
-                $view->data('$ui', $ui[self::UI_SETTINGS]);
-                $view->script('site-theme', 'theme-core:app/bundle/site-theme.js', $dependencies[self::UI_SETTINGS]);
-            },
-        ];
+        return $module;
     }
 }
