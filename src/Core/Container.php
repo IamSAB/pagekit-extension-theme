@@ -51,6 +51,16 @@ class Container implements \IteratorAggregate
         Arr::remove($this->items, $name);
     }
 
+    public function count()
+    {
+        return count($this->items);
+    }
+
+    public function keys()
+    {
+        return array_keys($this->items);
+    }
+
     /**
      * Get iterator
      *

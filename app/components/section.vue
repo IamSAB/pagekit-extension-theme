@@ -6,7 +6,7 @@
             <label class="uk-form-label">{{ 'Style' | trans }}</label>
             <div class="uk-form-controls">
                 <select-class class="uk-margin-right"
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="styles"
                     prefix="uk-section-"
                     :unselected="{index: 0, label: 'None'}">
@@ -14,7 +14,7 @@
                 <label>
                     {{ 'Preserve color' | trans }}
                     <checkbox-class
-                        :classes.sync="setting.classes"
+                        :classes.sync="options.classes"
                         value="uk-preserve-color">
                     </checkbox-class>
                 </label>
@@ -25,7 +25,7 @@
             <label class="uk-form-label">{{ 'Size' | trans }}</label>
             <div class="uk-form-controls">
                 <select-class
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="sizes"
                     prefix="uk-section-"
                     :unselected="{index: 2, label: 'Default'}">
@@ -33,33 +33,16 @@
             </div>
         </div>
 
-        <div class="uk-form-row">
-            <label class="uk-form-label">{{ 'Type' | trans }}</label>
-            <div class="uk-form-controls">
-                <label>
-                    <input type="checkbox" v-model="cover">
-                    {{'Use cover component and render section on top of it.'}}
-                </label>
-            </div>
-        </div>
-
-        <input-cover
-            v-if="cover"
-            :src.sync="setting.src"
-            :type.sync="setting.cover">
-        </input-cover>
-
         <input-background
-            v-else
-            :src.sync="setting.src"
-            :classes.sync="setting.classes">
+            :src.sync="options.src"
+            :classes.sync="options.classes">
         </input-background>
 
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Inverse' | trans }}</label>
             <div class="uk-form-controls">
                 <select-class
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="inverse"
                     :unselected="{index: 0, label: 'Default'}">
                 </select-class>
@@ -69,7 +52,7 @@
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Container size' | trans }}</label>
             <div class="uk-form-controls">
-                <select v-model="setting.container">
+                <select v-model="options.container">
                     <option value="uk-container-xsmall">{{ 'XSmall'}}</option>
                     <option value="uk-container-small">{{ 'Small'}}</option>
                     <option value="">{{ 'Default'}}</option>
@@ -82,7 +65,7 @@
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Custom class' | trans }}</label>
             <div class="uk-form-controls">
-                <input type="text" class="uk-form-width-large" v-model="setting.custom" lazy>
+                <input type="text" class="uk-form-width-large" v-model="options.custom" lazy>
             </div>
         </div>
 
@@ -92,26 +75,13 @@
 
 <script>
 
-    import InputCover from "./InputCover.vue";
-    import InputBackground from "./InputBackground.vue";
+    import InputBackground from "./input-background.vue";
 
     module.exports = {
 
-        extends: require('./setting.js'),
-
-        watch: {
-            cover (value, old) {
-                if (value) { // cover enabled
-                    this.setting.classes = this.setting.classes.replace(new RegExp('uk-background-[^ ]*( |$)','g'),'');
-                }
-                else { // cover disabled
-                    this.setting.cover = ''
-                }
-            }
-        },
+        extends: require('./component.js'),
 
         data: () => ({
-            cover: false,
             styles: {
                 default: 'Default',
                 muted: 'Muted',
@@ -136,11 +106,10 @@
         }),
 
         components: {
-            InputCover,
             InputBackground
         }
     }
 
-    window.$components['segment'] = module.exports;
+    window.$components['v-section'] = module.exports;
 
 </script>

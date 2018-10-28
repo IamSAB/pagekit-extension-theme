@@ -15,8 +15,10 @@ use SAB\Extension\Theme\Core\Element;
 use SAB\Extension\Theme\Core\Container;
 use SAB\Extension\Theme\Core\ItemInterface;
 use SAB\Extension\Theme\Core\PositionInterface;
-use SAB\Extension\Theme\Component\GridPosition;
 use SAB\Extension\Theme\Helper\ThemeHelper;
+use SAB\Extension\Theme\Component\GridPosition;
+use SAB\Extension\Theme\Component\HeroPosition;
+use SAB\Extension\Theme\Component\Section;
 
 
 class Theme extends Container implements LoaderInterface, \IteratorAggregate
@@ -35,10 +37,8 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
         $this->app = $app;
 
         $this->add(new GridPosition());
-        $this->get('grid')->add([
-            new Element('top', ['top']),
-            new Element('bottom', ['bottom'])
-        ]);
+        $this->add(new HeroPosition());
+        $this->add(new Section());
     }
 
     public function prefix($string)
@@ -51,16 +51,29 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
         // only load into a module if its a theme which explicitely requires theme-core
         if ($module['type'] == 'theme' && isset($module['require']) && $module['require'] == 'theme-core') {
 
+            if (isset($module['theme']) && is_callable($module['theme'])) {
+                call_user_func_array($module['theme'],[$this]);
+            }
+
             $dependencies = [
                 self::UI_SITE => ['site-edit'],
                 self::UI_SETTINGS => ['site-settings'],
-                'widget' => ['widget-edit'] // TODO constand for widget?
+                'widget' => ['widget-edit'] // TODO constant for widget?
             ];
 
             $ui = [
                 self::UI_SITE => [],
                 self::UI_SETTINGS => [],
                 'widget' => []
+            ];
+
+            $module['widget'] = [
+                'h_style' => '',
+                'h_tag' => 'h3',
+                'h_link' => false,
+                'classes' => '',
+                'header' => '',
+                'footer' => ''
             ];
 
             foreach($this as $comName => $component) {
@@ -88,9 +101,7 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
                 $options = $this->app['config']->get($module['name'])->get($comName.'.default', $component->getDefaultOptions()); // TODO always check config?
 
                 foreach ($component as $elName => $element) {
-
                     $module[$component->getUi()][$comName][$elName] = $options;
-
                     $ui[$component->getUi()][] = [
                         'component' => $comName,
                         'element' => $elName,
@@ -107,9 +118,6 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
 
             }
 
-            Application::log()->debug(json_encode($dependencies));
-            Application::log()->debug(json_encode($ui));
-
             $theme = $this;
             $themeName = $module['name'];
             $themeConfig = $this->app['config']->get($module['name']);
@@ -122,15 +130,17 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
                 },
                 'view.scripts' => function (Event $event, AssetManager $scripts) use ($theme) {
                     foreach($theme as $name => $component) {
-                        $scripts->register(
-                            $theme->prefix($name),
-                            $component->getScript()
-                        );
-                        if ($component instanceOf PositionInterface) { // register widget position script
+                        if ($component->count()) {
                             $scripts->register(
-                                $theme->prefix('widget-'.$name),
-                                $component->getWidgetScript()
+                                $theme->prefix($name),
+                                $component->getScript()
                             );
+                            if ($component instanceOf PositionInterface) { // register widget position script
+                                $scripts->register(
+                                    $theme->prefix('widget-'.$name),
+                                    $component->getWidgetScript()
+                                );
+                            }
                         }
                     }
                 },

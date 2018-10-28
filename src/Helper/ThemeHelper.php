@@ -27,8 +27,11 @@ class ThemeHelper extends Helper
     public function register(View $view)
     {
         $this->view = $view;
-        foreach ($this->tm as $name => $component) {
-            $component->setElementOptions($this->view->params[$name]);
+        foreach ($this->tm as $comName => $component) {
+            $component->register($view);
+            foreach ($component as $elName => $element) {
+                $element->setOptions($view->params[$comName][$elName]);
+            }
         }
     }
 
@@ -48,7 +51,11 @@ class ThemeHelper extends Helper
 
     public function widget(Widget $widget)
     {
-        $this->view->render('theme-core/widget.php', compact('widget'));
+        $params = $widget->theme;
+        $params['title'] = $widget->title;
+        $params['content'] = $widget->get('result');
+        $params['h_default_style'] = 'uk-card-title';
+        return $this->view->render('theme-core/widget.php', $params);
     }
 
     /**

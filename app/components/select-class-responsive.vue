@@ -38,6 +38,9 @@
 </template>
 
 <script>
+
+    // TODO activate toggle if a responsive class is selected
+
     module.exports = {
 
         props: {

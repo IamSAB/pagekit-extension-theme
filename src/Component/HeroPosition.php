@@ -9,28 +9,28 @@ use SAB\Extension\Theme\Core\ItemInterface;
 use Pagekit\Application;
 
 
-class GridPosition extends Component implements PositionInterface
+class HeroPosition extends Component implements PositionInterface
 {
     public function render($position)
     {
         $options = $this->get($position)->getOptions();
         $options['component'] = $position;
-        return $this->view->position($position, 'theme-core/position-grid.php', $options);
+        return $this->view->position($position, 'theme-core/position-hero.php', $options);
     }
 
     public static function getDefaultOptions()
     {
         return [
             'classes' => '',
+            'src' => '',
+            'type' => '',
             'custom' => '',
-            'height' => '',
-            'ukHeightViewport' => ''
         ];
     }
 
     public static function getScript()
     {
-        return 'theme-core:app/bundle/position-grid.js';
+        return 'theme-core:app/bundle/position-hero.js';
     }
 
     public static function getUi()
@@ -40,7 +40,7 @@ class GridPosition extends Component implements PositionInterface
 
     public static function getWidgetScript()
     {
-        return 'theme-core:app/bundle/widget-position-grid.js';
+        return 'theme-core:app/bundle/widget-position-hero.js';
     }
 
     public static function getWidgetDefaultOptions()
@@ -58,6 +58,6 @@ class GridPosition extends Component implements PositionInterface
 
     public function getName()
     {
-        return 'grid';
+        return 'hero';
     }
 }

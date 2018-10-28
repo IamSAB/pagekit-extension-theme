@@ -10,6 +10,8 @@
         - On input, emit its own custom input event with the new value e.g. $emit('input', $event.target.value)
      */
 
+    // TODO does not set inital state correctly
+
     module.exports = {
 
         props: {

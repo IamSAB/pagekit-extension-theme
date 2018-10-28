@@ -161,6 +161,6 @@
         })
     }
 
-    window.$components['grid'] = module.exports;
+    window.$components['v-grid'] = module.exports;
 
 </script>

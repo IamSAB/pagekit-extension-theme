@@ -3,6 +3,7 @@
 namespace SAB\Extension\Theme\Core;
 
 use Pagekit\Util\Arr;
+use Pagekit\View\View;
 
 
 abstract class Component extends Container implements ItemInterface
@@ -10,9 +11,16 @@ abstract class Component extends Container implements ItemInterface
     const DEFAULT_OPTIONS_FOR_NON_ELEMENTS = 0;
     const REFUSE_NON_ELEMENTS = 1;
 
+    protected $view;
+
     function __construct()
     {
         parent::__construct(Element::class);
+    }
+
+    public function register(View $view)
+    {
+        $this->view = $view;
     }
 
     public function setElementOptions(array $options)

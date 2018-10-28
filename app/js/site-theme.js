@@ -1,5 +1,7 @@
 module.exports = {
 
+    // TODO stacked for grid view not working as parent form with class uk-form-horizontal overwrites it
+
     extends: require('../components/ui.vue'),
 
     section: {

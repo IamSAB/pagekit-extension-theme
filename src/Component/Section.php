@@ -8,13 +8,14 @@ use SAB\Extension\Theme\Core\ItemInterface;
 use Pagekit\Application;
 
 
-class Section extends Component implements ItemInterface
+class Section extends Component
 {
     protected $started = false;
 
     public function start()
     {
         ob_start();
+        ob_implicit_flush(0);
         $this->started = true;
     }
 
@@ -24,29 +25,31 @@ class Section extends Component implements ItemInterface
             throw new \LogicException('No section started');
         }
         if (is_string($element)) {
-            $options = $this->elements->get($element)->getOptions();
+            $options = $this->get($element)->getOptions();
         }
         else {
             $options = array_merge($element, $this->getDefaultOptions());
         }
         $options['content'] = ob_get_clean();
-        return Application::view()->render('theme-core/section.php', $options);
+        return $this->view->render('theme-core/section.php', $options);
     }
 
-    public function getDefaultOptions()
+    public static function getDefaultOptions()
     {
         return [
             'classes' => '',
+            'src' => '',
+            'container' => '',
             'custom' => ''
         ];
     }
 
-    public function getScript()
+    public static function getScript()
     {
         return 'theme-core:app/bundle/section.js';
     }
 
-    public function getUi()
+    public static function getUi()
     {
         return Theme::UI_SITE;
     }

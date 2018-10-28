@@ -6,7 +6,7 @@
             <label class="uk-form-label">{{ 'Text alignment' | trans }}</label>
             <div class="uk-form-controls">
                 <select-class-responsive
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="textAlignment"
                     prefix="uk-text-">
                 </select-class-responsive>
@@ -17,7 +17,7 @@
             <label class="uk-form-label">{{ 'Width' | trans }}</label>
             <div class="uk-form-controls uk-grid-uk-grid-small">
                 <select-class-responsive
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="widths"
                     prefix="uk-width-"
                     :unselected="{index: 0, label: 'Inherit'}">
@@ -29,7 +29,7 @@
             <label class="uk-form-label">{{ 'Order' | trans }}</label>
             <div class="uk-form-controls">
                 <select-class-responsive
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="itemOrder"
                     prefix="uk-flex-">
                 </select-class-responsive>
@@ -40,7 +40,7 @@
             <label class="uk-form-label">{{ 'Match item height' | trans }}</label>
             <div class="uk-form-controls">
                 <checkbox-class
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     value="uk-grid-item-match">
                 </checkbox-class>
             </div>
@@ -49,7 +49,7 @@
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Custom class' | trans }}</label>
             <div class="uk-form-controls">
-                <input type="text" class="uk-form-width-large" v-model="setting.custom" lazy>
+                <input type="text" class="uk-form-width-large" v-model="options.custom" lazy>
             </div>
         </div>
 
@@ -98,6 +98,6 @@
         })
     }
 
-    window.$positions['grid'] = module.exports;
+    window.$positions['v-grid'] = module.exports;
 
 </script>

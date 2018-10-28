@@ -1,13 +1,20 @@
-<div class="<?= $classes ?> <?= $custom ?>">
+<div class="uk-card <?= $classes ?>">
 
-    <?php if ($type == 'panel'): ?>
-        <div class="uk-panel">
-            <?= $content ?>
-        </div>
-    <?php elseif ($type == 'tile'): ?>
-        <?= $view->tm()->tile('Widget') ?>
-    <?php elseif ($type == 'card'): ?>
-        <?= $view->tm()->card('Widget') ?>
+    <?php if ($header): ?>
+    <div class="uk-card-header">
+        <h3 class="uk-card-title"></h3>
+    </div>
+    <?php endif ?>
+
+    <div class="uk-card-body">
+        <?= $view->render('theme-core/heading.php', compact('h_style','h_default_style','h_tag','link')) ?>
+        <?= $content ?>
+    </div>
+
+    <?php if ($footer): ?>
+    <div class="uk-card-footer">
+        <?= $footer ?>
+    </div>
     <?php endif ?>
 
 </div>

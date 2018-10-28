@@ -41,7 +41,7 @@
                         <div class="uk-panel uk-panel-box uk-panel-box-secondary">
                             <h3 class="uk-panel-title">{{ item.title }}</h3>
                             <p v-if="item.description">{{ item.description }}</p>
-                            <component :is="item.component"  :options="config[item.component][item.element]" :component="item.component" :element="item.element"></component>
+                            <component :is="'v-'+item.component"  :options="config[item.component][item.element]" :component="item.component" :element="item.element"></component>
                         </div>
                     </li>
                 </ul>
