@@ -128,21 +128,25 @@ class Theme extends Container implements LoaderInterface, \IteratorAggregate
                         $view->addHelper(new ThemeHelper($app['tm']));
                     });
                 },
-                'view.scripts' => function (Event $event, AssetManager $scripts) use ($theme) {
-                    foreach($theme as $name => $component) {
-                        if ($component->count()) {
-                            $scripts->register(
-                                $theme->prefix($name),
-                                $component->getScript()
-                            );
-                            if ($component instanceOf PositionInterface) { // register widget position script
-                                $scripts->register(
-                                    $theme->prefix('widget-'.$name),
-                                    $component->getWidgetScript()
-                                );
+                'admin' => function (Event $event, Application $app) {
+                    $app->on('view.scripts', function (Event $event, AssetManager $scripts) use ($app) {
+                        foreach($theme as $name => $component) {
+                            if ($component->count()) {
+                                if ($component->getScript()) {
+                                    $scripts->register(
+                                        $theme->prefix($name),
+                                        $component->getScript()
+                                    );
+                                }
+                                if ($component instanceOf PositionInterface && $component->getWidgetScript()) { // register widget position script
+                                    $scripts->register(
+                                        $theme->prefix('widget-'.$name),
+                                        $component->getWidgetScript()
+                                    );
+                                }
                             }
                         }
-                    }
+                    });
                 },
                 'view.system/site/admin/edit' => function (ViewEvent $event, View $view) use ($ui, $dependencies) {
                     $view->data('$components', new \stdClass());
