@@ -24,7 +24,7 @@
 
     module.exports = {
 
-        extends: require('./component.js'),
+        extends: require('./update.js'),
 
         components: {
             InputCover

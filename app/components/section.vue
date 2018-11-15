@@ -79,7 +79,7 @@
 
     module.exports = {
 
-        extends: require('./component.js'),
+        extends: require('./update.js'),
 
         data: () => ({
             styles: {

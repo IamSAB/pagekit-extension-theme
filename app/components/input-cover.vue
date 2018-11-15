@@ -5,16 +5,17 @@
         <div class="uk-form-row">
             <label for="form-hero-video" class="uk-form-label">{{ 'Cover' | trans }}</label>
             <div class="uk-form-controls">
-
-                <a class="uk-form-width-large uk-placeholder uk-text-center uk-display-block uk-margin-remove" v-if="!src" @click.prevent="$refs.modal.open()">
-                    <img width="60" height="60" :alt="'Placeholder Image' | trans" :src="$url('app/system/assets/images/placeholder-image.svg')">
-                    <img width="60" height="60" :alt="'Placeholder Video' | trans" :src="$url('app/system/assets/images/placeholder-video.svg')">
-                    <p class="uk-text-muted uk-margin-small-top">{{ 'Select source from storage' | trans }}</p>
-                </a>
+                <div v-if="!src" class="uk-form-width-large" style="max-width: 100%;">
+                    <a class="uk-placeholder uk-text-center uk-display-block uk-margin-remove" @click.prevent="$refs.modal.open()">
+                        <img width="60" height="60" :alt="'Placeholder Image' | trans" :src="$url('app/system/assets/images/placeholder-image.svg')">
+                        <img width="60" height="60" :alt="'Placeholder Video' | trans" :src="$url('app/system/assets/images/placeholder-video.svg')">
+                        <p class="uk-text-muted uk-margin-small-top">{{ 'Select source from storage' | trans }}</p>
+                    </a>
+                </div>
                 <div v-if="src">
                     <img class="uk-form-width-large" v-if="type == 'img'" :src="$url(src)">
                     <video class="uk-form-width-large" v-if="type == 'video'" :src="$url(src)"></video>
-                    <iframe class="uk-form-width-large" v-if="type == 'iframe'" :src="$url(src)"></iframe>
+                    <iframe class="uk-form-width-large" style="max-width: 100%;" v-if="type == 'iframe'" :src="$url(src)"></iframe>
                 </div>
 
                 <div class="uk-margin-top uk-form-icon">

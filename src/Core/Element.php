@@ -9,19 +9,13 @@ use Pagekit\View\Helper\ScriptHelper;
 class Element implements ItemInterface
 {
     protected $name;
-
-    protected $title;
-
-    protected $description;
-
-    protected $tags;
-
+    public $title;
+    public $description;
     protected $options = [];
 
-    function __construct(string $name, array $tags = [], string $title = '', string $description = '')
+    function __construct(string $name, string $title = '', string $description = '')
     {
         $this->name =  $name;
-        $this->tags = $tags;
         $this->title = $title ? $title : ucfirst($name);
         $this->description = $description;
     }
@@ -29,30 +23,5 @@ class Element implements ItemInterface
     public function getName()
     {
         return $this->name;
-    }
-
-    public function getTags()
-    {
-        return $this->tags;
-    }
-
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
-    public function getDescription()
-    {
-        return $this->description;
-    }
-
-    public function setOptions(array $options)
-    {
-        $this->options = $options;
-    }
-
-    public function getOptions()
-    {
-        return $this->options;
     }
 }

@@ -30,18 +30,13 @@
         }),
 
         created () {
-            _.forOwn(this.options, (label,key) => {
-                if (this.classes.includes(this.getValue(key))) {
-                    this.model = this.getValue(key);
-                    return false;
-                }
-            });
+            this.model = _.includes(this.classes, this.value);
             this.$watch('model', function (checked,old) {
                 if (checked) {
                     this.classes += ' '+this.value;
                 }
                 else if (_.includes(this.classes, this.value) && old) {
-                    this.classes = this.classes.replace(this.value, '');
+                    this.classes = _.trim(this.classes.replace(this.value, ''));
                 }
             });
         }

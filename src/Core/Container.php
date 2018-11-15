@@ -40,6 +40,11 @@ class Container implements \IteratorAggregate
         return Arr::get($this->items, $name);
     }
 
+    public function has($name)
+    {
+        return Arr::has($this->items, $name);
+    }
+
     /**
      * Remove item(s)
      *

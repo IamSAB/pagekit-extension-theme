@@ -4,7 +4,7 @@
 
         <div class="<?= $widget->theme['grid']['classes'] ?> <?= $widget->theme['grid']['custom'] ?>">
 
-            <?= $view->tm()->widget($widget) ?>
+            <?= $view->tm()->card($view->tm()->heading($widget->title, $widget->theme['heading'], 'uk-card-title'), $widget->get('result'), $widget->theme['grid']['card']) ?>
 
         </div>
 

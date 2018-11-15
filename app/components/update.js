@@ -5,11 +5,7 @@ module.exports = {
             type: Object,
             required: true
         },
-        component: {
-            type: String,
-            required: true
-        },
-        element: {
+        update: {
             type: String,
             required: true
         }
@@ -17,8 +13,9 @@ module.exports = {
 
     watch: {
         options: {
-            handler: function() {
-                this.$dispatch('update', this.component, this.element, this.options);
+            handler () {
+                // TODO implement debounce
+                this.$dispatch('update', this.options, this.update);
             },
             deep: true
         }

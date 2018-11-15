@@ -57,7 +57,7 @@
             });
             this.$watch('model', function (value,old) {
                 if (old.length && this.classes.includes(old)) {
-                    this.classes = this.classes.split(old).join(value);
+                    this.classes = _.trim(this.classes.split(old).join(value));
                 }
                 else {
                     this.classes += (' '+value);

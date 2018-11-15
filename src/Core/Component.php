@@ -6,16 +6,30 @@ use Pagekit\Util\Arr;
 use Pagekit\View\View;
 
 
-abstract class Component extends Container implements ItemInterface
+class Component extends Container implements ItemInterface
 {
-    const DEFAULT_OPTIONS_FOR_NON_ELEMENTS = 0;
-    const REFUSE_NON_ELEMENTS = 1;
-
     protected $view;
 
-    function __construct()
+    protected $name;
+    protected $template;
+    public $description;
+    public $script;
+    public $options;
+
+    function __construct(string $name, string $script, string $template, array $options, string $description = '')
     {
         parent::__construct(Element::class);
+
+        $this->name = $name;
+        $this->script = $script;
+        $this->template = $template;
+        $this->options = $options;
+        $this->description = $description;
+    }
+
+    public function getTitle()
+    {
+        return ucfirst($this->name);
     }
 
     public function register(View $view)
@@ -23,43 +37,30 @@ abstract class Component extends Container implements ItemInterface
         $this->view = $view;
     }
 
-    public function setElementOptions(array $options)
+    public function render(string $el)
     {
-        foreach ($this as $name => $element) {
-            if (Arr::has($options, $name)) {
-                $element->setOptions($options[$name]);
-            }
-        }
+        $options = $this->getOptions($el);
+
+        return $this->view->render($this->template, $options);
     }
 
-    public function getElementOptions(string $element, int $option = self::DEFAULT_OPTIONS_FOR_NON_ELEMENTS)
+    protected function getOptions(string $el = '')
     {
-        if ($element && $this->has($element)) {
-            return $this->get($element)->getOptions();
-        }
-        elseif ($option == self::REFUSE_NON_ELEMENTS ) {
-            throw new \InvalidArgumentException('Element is not registered.');
+        if ($el && $this->has($el)) {
+            return $this->view->params->get("{$this->name}.$el", []);
         }
         else {
-            return $this->getDefaultOptions();
+            return $this->view->params->get("defaults.{$this->name}", $this->options);
         }
     }
 
-    public function getTags()
+    public function getName()
     {
-        return [$this->getName()];
+        return $this->name;
     }
 
-    public static function editableDefaultOptions()
+    public function getClass()
     {
-        return false;
+        return (new \ReflectionClass($this))->getShortName();
     }
-
-    abstract public static function getDefaultOptions();
-
-    abstract public static function getScript();
-
-    abstract public static function getUi();
-
-    abstract public function getName();
 }

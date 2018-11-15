@@ -10,9 +10,13 @@
 
     <?php foreach ($widgets as $widget) : ?>
 
-        <div class="<?= $widget->theme['hero']['classes'] ?> <?= $widget->theme['hero']['custom'] ?>">
+        <div class="uk-overlay <?= $widget->theme['hero']['classes'] ?> <?= $widget->theme['hero']['custom'] ?>">
 
-            <?= $view->tm()->widget($widget) ?>
+            <?= $view->tm()->heading($widget->title, $widget->theme['heading'], 'uk-h3') ?>
+
+            <p>
+                <?= $widget->get('result') ?>
+            </p>
 
         </div>
 

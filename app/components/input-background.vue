@@ -5,13 +5,16 @@
         <div class="uk-form-row">
             <label for="form-hero-video" class="uk-form-label">{{ 'Background' | trans }}</label>
             <div class="uk-form-controls">
-                <a class="uk-form-width-large uk-placeholder uk-text-center uk-display-block uk-margin-remove" v-if="!src" @click.prevent="$refs.modal.open()">
-                    <img width="60" height="60" :alt="'Placeholder Image' | trans" :src="$url('app/system/assets/images/placeholder-image.svg')">
-                    <p class="uk-text-muted uk-margin-small-top">{{ 'Select Image' | trans }}</p>
-                </a>
+                <div v-if="!src" class="uk-form-width-large" style="max-width: 100%;">
+                    <a class="uk-placeholder uk-text-center uk-display-block uk-margin-remove" style="max-width: 100%;" @click.prevent="$refs.modal.open()">
+                        <img width="60" height="60" :alt="'Placeholder Image' | trans" :src="$url('app/system/assets/images/placeholder-image.svg')">
+                        <p class="uk-text-muted uk-margin-small-top">{{ 'Select Image' | trans }}</p>
+                    </a>
+                </div>
                 <template v-else>
                     <img class="uk-form-width-large" :src="src.indexOf('blob:') !== 0  ? $url(src) : src">
                     <input class="uk-margin-small-top uk-form-width-large" type="text" :value="src" disabled>
+                    <a v-if="src" class="pk-icon-delete" @click.prevent="src = ''" data-uk-tooltip :title="'Delete source' | trans"></a>
                 </template>
                 <div v-if="src" class="uk-margin-small-top uk-grid uk-grid-small" data-uk-grid-margin>
                     <div>

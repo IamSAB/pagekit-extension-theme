@@ -83,30 +83,28 @@
                 <div v-if="options.height == 'viewport'" class="uk-grid uk-grid-small uk-margin-small-top" data-uk-grid-margin>
                     <div>
                         {{ 'Offset top' | trans }}
-                        <select-javascript-options
+                        <checkbox-javascript-options
                             class="uk-form-small"
                             :value.sync="options.ukHeightViewport"
                             :options="{true: 'True', false: 'False'}"
                             key="offset-top">
-                        </select-javascript-options>
+                        </checkbox-javascript-options>
                     </div>
                     <div>
                         {{ 'Offset bottom' | trans }}
-                        <select-javascript-options
+                        <checkbox-javascript-options
                             class="uk-form-small"
                             :value.sync="options.ukHeightViewport"
-                            :options="{true: 'True', false: 'False'}"
                             key="offset-bottom">
-                        </select-javascript-options>
+                        </checkbox-javascript-options>
                     </div>
                     <div>
                         {{ 'Expand' | trans }}
-                        <select-javascript-options
+                        <checkbox-javascript-options
                             class="uk-form-small"
                             :value.sync="options.ukHeightViewport"
-                            :options="{true: 'True', false: 'False'}"
                             key="expand">
-                        </select-javascript-options>
+                        </checkbox-javascript-options>
                     </div>
                 </div>
             </div>
@@ -127,7 +125,7 @@
 
     module.exports = {
 
-        extends: require('./component.js'),
+        extends: require('./update.js'),
 
         data: () => ({
             gutters: {

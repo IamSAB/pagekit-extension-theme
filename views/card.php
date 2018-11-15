@@ -7,8 +7,10 @@
     <?php endif ?>
 
     <div class="uk-card-body">
-        <?= $view->tm()->heading('Card') ?>
-        <?= $content ?>
+        <?= $heading ?>
+        <p>
+            <?= $content ?>
+        </p>
     </div>
 
     <?php if ($footer): ?>

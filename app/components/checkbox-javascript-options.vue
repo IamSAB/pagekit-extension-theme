@@ -13,18 +13,14 @@
     module.exports = {
 
         props: {
-            jsOpts: {
+            value: {
                 type: String,
                 required: true
             },
             key: {
                 type: String,
                 required: true
-            },
-            class: {
-                type: String,
-                default: ''
-            },
+            }
         },
 
         data: () => ({
@@ -32,22 +28,19 @@
         }),
 
         created () {
-            let regex = new RegExp('(?<='+this.key+':).*?(?=;)'),
-                match = this.jsOpts.match(regex);
-            if (match) {
-                this.model = true
+            const regex = new RegExp('(?<='+this.key+':).*?(?=;)');
+            if (this.value.match(regex)) {
+                this.model = (match == 'true' ? true : false);
             }
-            this.$watch('model', function (value,old) {
-                if (value) {
-                    this.jsOpts += (this.key+':'+value+';')
+            this.$watch('model', function (value, old) {
+                if (!this.value.match(regex)) {
+                    this.value += (this.key+':'+(value ? 'true' : 'false')+';')
                 }
-                else if (old && this.jsOpts.match(regex)) { //remove
-                    this.jsOpts = this.jsOpts.replace(regex,'');
+                else { // update
+                    this.value = this.value.replace(regex, (value ? 'true' : 'false'));
                 }
             });
         }
     }
-
-    Vue.component('CheckboxJsOpts', module.exports);
 
 </script>

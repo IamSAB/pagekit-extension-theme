@@ -1,6 +1,8 @@
 <template>
 
-    <div>
+    <div class="uk-form-horizontal">
+
+        <card :options="options.card" :update="update+'.card'"></card>
 
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Text alignment' | trans }}</label>
@@ -61,12 +63,7 @@
 
     module.exports = {
 
-        props: {
-            options: {
-                type: Object,
-                required: true
-            }
-        },
+        extends: require('./update.js'),
 
         data: () => ({
             textAlignment: {
@@ -94,10 +91,10 @@
                 '1-4':'1/4 25%',
                 '1-5':'1/5 20%',
                 '1-6':'1/6 17%',
-            },
+            }
         })
     }
 
-    window.$positions['v-grid'] = module.exports;
+    window.$components['v-grid'] = module.exports;
 
 </script>

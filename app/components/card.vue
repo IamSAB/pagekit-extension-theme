@@ -1,12 +1,12 @@
 <template>
 
-    <div>
+    <div class="uk-form-row">
 
         <div class="uk-form-row">
             <label class="uk-form-label">{{ 'Style' | trans }}</label>
             <div class="uk-form-controls">
                 <select-class
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="styles"
                     prefix="uk-card-">
                 </select-class>
@@ -17,7 +17,7 @@
             <label class="uk-form-label">{{ 'Size' | trans }}</label>
             <div class="uk-form-controls">
                 <select-class
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     :options="sizes"
                     prefix="uk-card-">
                 </select-class>
@@ -28,9 +28,23 @@
             <label class="uk-form-label">{{ 'Hover effect' | trans }}</label>
             <div class="uk-form-controls">
                 <checkbox-class
-                    :classes.sync="setting.classes"
+                    :classes.sync="options.classes"
                     value="uk-card-hover">
                 </checkbox-class>
+            </div>
+        </div>
+
+        <div class="uk-form-row">
+            <label class="uk-form-label">{{ 'Header' | trans }}</label>
+            <div class="uk-form-controls">
+                <v-editor :value.sync="options.header" :options="{height:250}"></v-editor>
+            </div>
+        </div>
+
+        <div class="uk-form-row">
+            <label class="uk-form-label">{{ 'Footer' | trans }}</label>
+            <div class="uk-form-controls">
+                <v-editor :value.sync="options.footer" :options="{height:250}"></v-editor>
             </div>
         </div>
 
@@ -42,7 +56,7 @@
 
     module.exports = {
 
-        extends: require('./setting.js'),
+        extends: require('./update.js'),
 
         data: () => ({
             styles: {
@@ -56,7 +70,5 @@
             }
         })
     }
-
-    window.$components['card'] = module.exports;
 
 </script>
